@@ -1,6 +1,6 @@
 #include "Chat.h"
 #include "Network/Socket.h"
-
+#include "Network/Packet.h"
 
 int main() {
     fflush(stdin);
@@ -35,16 +35,8 @@ int main() {
     while (1) {
         // Получаем все данные из сокета
         while ((data_size = socket_receive_blocking(sockfd, (char *) buf, &addr_other, &addr_other_size)) != -1) {
-            // Получаем ip и port
-            char* ip = inet_ntoa(addr_other.sin_addr);
-            int port = ntohs(addr_other.sin_port);
-
-            buf[data_size] = '\0';
-
-            printf("Received packet from %s:%d\n", ip, port);
-            printf("Size data: %d\n", data_size);
-            // TODO: Не может ли быть выхода за границы памяти buf?
-            printf("Data: %s\n", buf);
+            // Вызываем функцию обрабатывающую входящие пакеты
+            receivePacket((char *) buf, data_size, &addr_other);
         }
         // Получаем все введенные строки
         while ((data_size = (int) read(0, &buf, BUFLEN)) != -1) {
@@ -53,5 +45,6 @@ int main() {
         }
         sleep((unsigned int) 1);
     }
+    close_socket(sockfd);
     return 0;
 }

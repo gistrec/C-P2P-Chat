@@ -24,7 +24,21 @@
 #define PACKET_SEND_MESSAGE 4
 
 // Пакет отправляется участнику в ответ на пакет PACKET_SEND_MESSAGE;
-#define PACKET_MESSAGE_ACCEPT 5;
+// #define PACKET_MESSAGE_ACCEPT 5;
 
+// Получаем id пакета
+int getPacketId(char* data);
+
+// Записываем в буффер пакет
+// Возвращаем кол-во записанных байт
+int createConnectPacket(char* buf);
+int createMessagePacket(char* buf);
+//int createAcceptPacket(char* buf);
+//int createGetUsersPacket(char* buf);
+//int createTimeoutPacket(char* buf);
+
+// Передаем в функцию входящих пакет
+// В ней будем вызывать соответствующие функции
+void receivePacket(char* buf, int size,  struct sockaddr_in *address);
 
 #endif //C_P2P_CHAT_PACKET_H

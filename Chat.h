@@ -1,9 +1,7 @@
-/*
-Simple udp server
-*/
 #ifndef C_P2P_CHAT_CHAT_H
 #define C_P2P_CHAT_CHAT_H
 
+// TODO: убрать лишнее
 #include <stdio.h> //printf
 #include <stdlib.h>
 #include <errno.h>
@@ -17,7 +15,7 @@ Simple udp server
 #include <fcntl.h>
 #include <time.h>
 
-#define BUFLEN 512  //Max length of buffer
+#define BUFLEN 512  // Максимальный размер буффера
 #define CHAT_PORT 8888 // Порт
 
 
