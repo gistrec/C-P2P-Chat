@@ -7,6 +7,10 @@ int create_socket() {
     return sockfd;
 }
 
+void close_socket(int sockfd) {
+    close(sockfd);
+}
+
 void bind_address(int sockfd, struct sockaddr_in *addr, unsigned int *addr_size, unsigned short port) {
     memset((char *) addr, 0, sizeof(*addr));
     addr->sin_family = AF_INET;
@@ -20,7 +24,7 @@ void bind_address(int sockfd, struct sockaddr_in *addr, unsigned int *addr_size,
 }
 
 void send_udp(int sockfd, const struct sockaddr_in *addr, unsigned int addr_len, char *body) {
-    unsigned int body_len = (unsigned int) strlen(*body);
+    unsigned int body_len = (unsigned int) strlen(body);
     sendto(sockfd, body, body_len, 0, (struct sockaddr*) &addr, addr_len);
 }
 

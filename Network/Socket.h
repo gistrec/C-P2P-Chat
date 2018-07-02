@@ -7,6 +7,9 @@
 /// Возвращает число - дискриптор сокета
 int create_socket();
 
+/// Функция нужна для закрытия дискриптора сокета
+void close_socket(int sockfd);
+
 /// Функция нужна для названчения локального адреса сокету
 /// Входные данные - дискриптор сокета, указатель на
 void bind_address(int sockfd, struct sockaddr_in *addr, unsigned int *addr_size, unsigned short port);
