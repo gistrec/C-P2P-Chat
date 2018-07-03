@@ -34,7 +34,7 @@ int main() {
 
     while (1) {
         // Получаем все данные из сокета
-        while ((data_size = socket_receive_blocking(sockfd, (char *) buf, &addr_other, &addr_other_size)) != -1) {
+        while ((data_size = socket_read(sockfd, (char *) buf, &addr_other, &addr_other_size)) != -1) {
             // Вызываем функцию обрабатывающую входящие пакеты
             receivePacket((char *) buf, data_size, &addr_other);
         }

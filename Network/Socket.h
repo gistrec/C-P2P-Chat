@@ -19,6 +19,6 @@ void send_udp(int sockfd, const struct sockaddr_in *addr, unsigned int addr_len,
 
 /// Блокирующая функция для получения данных с сокета
 /// Возвращает кол-во байт, которые были получены
-int socket_receive_blocking(int sockfd, char *buf, struct sockaddr_in* addr, unsigned int *addr_len);
+int socket_read(int sockfd, char *buf, struct sockaddr_in* addr, unsigned int *addr_len);
 
 #endif //C_P2P_CHAT_SOCKET_H

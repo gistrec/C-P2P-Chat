@@ -28,7 +28,7 @@ void send_udp(int sockfd, const struct sockaddr_in *addr, unsigned int addr_len,
     sendto(sockfd, body, body_len, 0, (struct sockaddr*) &addr, addr_len);
 }
 
-int socket_receive_blocking(int sockfd, char *buf, struct sockaddr_in* addr, unsigned int *addr_len) {
+int socket_read(int sockfd, char *buf, struct sockaddr_in* addr, unsigned int *addr_len) {
     // TODO: проверить на recv_len != -1
     memset((char *) addr, 0, sizeof(*addr));
     int recv_len = (int) recvfrom(sockfd, buf, BUFLEN, 0, (struct sockaddr*) &addr, addr_len);

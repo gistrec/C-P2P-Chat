@@ -1,6 +1,8 @@
 #ifndef C_P2P_CHAT_PACKET_H
 #define C_P2P_CHAT_PACKET_H
 
+#include "../Chat.h"
+
 // Пакет отправляется одному из участников для подключения к сети
 // В ответ участник должен отправить пришедшие данные обратно
 // И добавить к себе участника в массив участников
@@ -32,13 +34,13 @@ int getPacketId(char* data);
 // Записываем в буффер пакет
 // Возвращаем кол-во записанных байт
 int createConnectPacket(char* buf);
-int createMessagePacket(char* buf);
+int createMessagePacket(char* buf, char* msg, int len_msg);
 //int createAcceptPacket(char* buf);
 //int createGetUsersPacket(char* buf);
 //int createTimeoutPacket(char* buf);
 
 // Передаем в функцию входящих пакет
 // В ней будем вызывать соответствующие функции
-void receivePacket(char* buf, int size,  struct sockaddr_in *address);
+void receivePacket(char* buf, int size, struct sockaddr_in* address);
 
 #endif //C_P2P_CHAT_PACKET_H

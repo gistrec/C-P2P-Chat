@@ -9,7 +9,7 @@ int createConnectPacket(char* buf) {
     return 1;
 }
 
-int createMessagePacket(char* buf, char* msg, char* len_msg) {
+int createMessagePacket(char* buf, char* msg, int len_msg) {
     buf[0] = PACKET_CONNECT;
     for (int i = 1; i <= len_msg; i++) {
         buf[i] = msg[i - 1];
@@ -17,16 +17,19 @@ int createMessagePacket(char* buf, char* msg, char* len_msg) {
     return 1 + len_msg;
 }
 
-void receivePacket(char* buf, int size, struct sockaddr_in *address) {
+void receivePacket(char* buf, int size, struct sockaddr_in* address) {
     int packet_id = getPacketId(buf);
+    char* ip;
+    int port;
     // TODO: Добавить остальные пакеты
     switch (packet_id) {
         case PACKET_CONNECT:
+            addClient(address);
             break;
         case PACKET_SEND_MESSAGE:
             // Получаем
-            char* ip = inet_ntoa(address.sin_addr);
-            int port = ntohs(address.sin_port);
+            ip = inet_ntoa(address->sin_addr);
+            port = ntohs(address->sin_port);
 
             buf[size] = '\0';
 
