@@ -1,7 +1,7 @@
 #include "Packet.h"
 
 int getPacketId(char* buf) {
-    return (int) buf[0];
+    return buf[0];
 }
 
 int createConnectPacket(char* buf) {
@@ -19,22 +19,23 @@ int createMessagePacket(char* buf, char* msg, int len_msg) {
 
 void receivePacket(char* buf, int size, struct sockaddr_in* address) {
     int packet_id = getPacketId(buf);
-    char* ip;
-    int port;
+    char* ip = inet_ntoa(address->sin_addr);;
+    int port = ntohs(address->sin_port);
     // TODO: Добавить остальные пакеты
     switch (packet_id) {
         case PACKET_CONNECT:
             addClient(address);
+            printf("Добавили клиента");
             break;
         case PACKET_SEND_MESSAGE:
-            // Получаем
-            ip = inet_ntoa(address->sin_addr);
-            port = ntohs(address->sin_port);
-
             buf[size] = '\0';
 
             printf("Message from %s:%d\n", ip, port);
             printf("%s\n", buf);
             break;
+        case '9':
+            exit(0);
+            break;
     }
+    printf("Что-то пришло\n");
 }
