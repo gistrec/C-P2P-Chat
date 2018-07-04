@@ -4,6 +4,11 @@
 // которая для каждого элемента структуры вызовет zero-initialization
 struct client clients[MAX_CLIENTS] = {};
 
+void escape(char* error) {
+    printf("Error!!!\n");
+    printf("%s\n", error);
+    exit(1);
+}
 
 void addClient(struct sockaddr_in* addr) {
     for (int i = 0; i < MAX_CLIENTS; i++) {

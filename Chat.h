@@ -2,18 +2,12 @@
 #define C_P2P_CHAT_CHAT_H
 
 // TODO: убрать лишнее
-#include <stdio.h> //printf
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/uio.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <time.h>
+#include <stdio.h>  // printf()
+#include <stdlib.h> // atoi()
+#include <string.h> // strcmp()
+#include <unistd.h> // read(), close()
+#include <arpa/inet.h> // struct sockaddr_in
+#include <fcntl.h>  // fcntl()
 
 #include "Network/Packet.h"
 #include "Network/Socket.h"
@@ -28,6 +22,9 @@ struct client {
 };
 extern struct client clients[MAX_CLIENTS];
 
+/// Функция завершает выполнение программы
+/// Выведя при этом строку error
+void escape(char* error);
 
 /// Функция нужна для добавления клиента в массив клиентов
 void addClient(struct sockaddr_in* addr);
