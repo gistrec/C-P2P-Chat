@@ -34,13 +34,9 @@ int getPacketId(char* data);
 // Записываем в буффер пакет
 // Возвращаем кол-во записанных байт
 int createConnectPacket(char* buf);
-int createMessagePacket(char* buf, char* msg, int len_msg);
+int createMessagePacket(char* buf, int len_msg);
 //int createAcceptPacket(char* buf);
 //int createGetUsersPacket(char* buf);
 //int createTimeoutPacket(char* buf);
-
-// Передаем в функцию входящих пакет
-// В ней будем вызывать соответствующие функции
-void receivePacket(char* buf, int size, struct sockaddr_in* address);
 
 #endif //C_P2P_CHAT_PACKET_H

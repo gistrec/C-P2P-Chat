@@ -38,8 +38,8 @@ int existClient(struct sockaddr_in* addr);
 /// Функция нужна для удаления клиента из массива клиентов
 void removeClient(struct sockaddr_in* addr);
 
-/// Отправляем всем клиентам сообщение
-void sendMessage(char* buf, int buf_size);
+/// Отправляем пакет всем клиентам
+void sendPacket(int sockfd, char* buf, int buf_size);
 
 
 #endif //C_P2P_CHAT_CHAT_H

@@ -8,7 +8,8 @@ struct client clients[MAX_CLIENTS] = {};
 void addClient(struct sockaddr_in* addr) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive == 0) {
-            clients[i].address = *addr;
+            // Копируем адрес
+            memcpy(&(clients[i].address), addr, sizeof(*addr));
             clients[i].isActive = 1;
             return;
         }
@@ -40,15 +41,11 @@ void removeClient(struct sockaddr_in* addr) {
     }
 }
 
-void sendMessage(char* buf, int buf_size) {
-    createMessagePacket(buf, buf_size);
+void sendPacket(int sockfd, char* buf, int buf_size) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive == 1) {
-            // Сравниваем ip
-            if (clients[i].address.sin_addr.s_addr == addr->sin_addr.s_addr) {
-                clients[i].isActive = 0;
-                return;
-            }
+            send_udp(sockfd, &(clients[i].address), buf, buf_size);
+
         }
     }
 }

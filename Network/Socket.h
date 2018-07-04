@@ -22,6 +22,6 @@ void send_udp(int sockfd, const struct sockaddr_in *addr, char *buf, int buf_siz
 int socket_read(int sockfd, char *buf, struct sockaddr_in* addr, unsigned int *addr_len);
 
 /// Создаем структуру адреса
-struct sockaddr_in* createAddress(char* ip, int port);
+void createAddress(char* ip, int port, struct sockaddr_in* addr);
 
 #endif //C_P2P_CHAT_SOCKET_H

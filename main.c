@@ -43,25 +43,41 @@ int main(int argc, char *argv[]) {
     flags |= O_NONBLOCK;
     fcntl(0, F_SETFL, flags);
 
-    printf("Подключаемся к %s:%d\n", connect_ip, connect_port);
+    printf("Подключаемся к %s:%d\n\n", connect_ip, connect_port);
     buf_size = createConnectPacket(buf);
-    struct sockaddr_in* connect_address = createAddress(connect_ip, connect_port);
-    send_udp(sockfd, connect_address, buf, buf_size);
-    free(connect_address);
+    struct sockaddr_in connect_address;
+    createAddress(connect_ip, connect_port, &connect_address);
+    send_udp(sockfd, &connect_address, buf, buf_size);
 
     while (1) {
         // Зачем-то нужно передавать длину адреса. Вообще для определения IPv4/6
         int address_size;
         // Получаем все данные из сокета
         while ((buf_size = socket_read(sockfd, (char *) &buf, &buf_address, &address_size)) != -1) {
-            // Вызываем функцию обрабатывающую входящие пакеты
-            receivePacket((char *) buf, buf_size, &buf_address);
+            buf[buf_size] = '\0';
+            char* buf_ip = inet_ntoa(buf_address.sin_addr);
+            int buf_port = ntohs(buf_address.sin_port);
+            printf("Входящий пакет: %s\n", buf);
+            printf("От %s:%d\n\n", buf_ip, buf_port);
+
+            int packet_id = getPacketId((char *) &buf);
+            // TODO: Добавить остальные пакеты
+            switch (packet_id) {
+                case PACKET_CONNECT:
+                    addClient(&buf_address);
+                    printf("Добавили клиента %s:%d\n\n", buf_ip, buf_port);
+                    break;
+                case PACKET_SEND_MESSAGE:
+                    printf("Пришло сообщение: %s\n\n", buf+1);
+                    break;
+            }
         }
         // Получаем все введенные строки
         while ((buf_size = (int) read(0, &buf, BUFLEN)) != -1) {
             buf[buf_size] = '\0';
-
-            // printf("Write text: %s", buf);
+            printf("Отправляем всем сообщение: %s\n", buf);
+            createMessagePacket((char *) &buf, buf_size);
+            sendPacket(sockfd, (char *) &buf, buf_size+1);
         }
         sleep((unsigned int) 1);
     }

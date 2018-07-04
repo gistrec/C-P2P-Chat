@@ -32,10 +32,8 @@ int socket_read(int sockfd, char *buf, struct sockaddr_in* addr, unsigned int *a
     return recv_len;
 }
 
-struct sockaddr_in* createAddress(char* ip, int port) {
-    struct sockaddr_in* address = malloc(sizeof(struct sockaddr_in));
-    address->sin_family = AF_INET;
-    address->sin_addr.s_addr = inet_addr(ip);
-    address->sin_port = htons(port);
-    return address;
+void createAddress(char* ip, int port, struct sockaddr_in* addr) {
+    addr->sin_family = AF_INET;
+    addr->sin_addr.s_addr = inet_addr(ip);
+    addr->sin_port = htons(port);
 }
