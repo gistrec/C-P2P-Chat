@@ -21,6 +21,12 @@ void send_udp(int sockfd, const struct sockaddr_in *addr, char *buf, int buf_siz
 /// Возвращает кол-во байт, которые были получены
 int socket_read(int sockfd, char *buf, struct sockaddr_in* addr, unsigned int *addr_len);
 
+/// Установка неблокирующего флага дескриптору
+void setNonblockFlag(int descriptor);
+
+/// Одинаковы ли два адреса
+int isEquivalAddr(const struct sockaddr_in* first, const struct sockaddr_in* second);
+
 /// Создаем структуру адреса
 void createAddress(char* ip, int port, struct sockaddr_in* addr);
 

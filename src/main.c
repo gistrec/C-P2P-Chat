@@ -26,6 +26,7 @@ int main(int argc, char *argv[]) {
 
     // Создаем сокет
     int sockfd = create_socket();
+
     // Привязываем адрес к сокету
     bind_address(sockfd, &local_address, CHAT_PORT);
 
@@ -33,21 +34,15 @@ int main(int argc, char *argv[]) {
     int port = ntohs(local_address.sin_port);
     printf("Ваш ip и порт: %s:%d\n", ip, port);
 
-    // Устанавливаем неблокирующий флаг дискриптору сокета
-    int flags = fcntl(sockfd, F_GETFL);
-    flags |= O_NONBLOCK;
-    fcntl(sockfd, F_SETFL, flags);
+    // Устанавливаем неблокирующий флаг дискрипторам
+    setNonblockFlag(sockfd);
+    setNonblockFlag(0);
 
-    // Устаналиваем неблокирующий флаг stdin
-    flags = fcntl(0, F_GETFL);
-    flags |= O_NONBLOCK;
-    fcntl(0, F_SETFL, flags);
-
-    printf("Подключаемся к %s:%d\n\n", connect_ip, connect_port);
-    buf_size = createConnectPacket(buf);
     struct sockaddr_in connect_address;
     createAddress(connect_ip, connect_port, &connect_address);
-    send_udp(sockfd, &connect_address, buf, buf_size);
+
+    printf("Подключаемся к %s:%d\n\n", connect_ip, connect_port);
+    connectToClient(sockfd, &connect_address);
 
     while (1) {
         // Зачем-то нужно передавать длину адреса. Вообще для определения IPv4/6
@@ -66,6 +61,8 @@ int main(int argc, char *argv[]) {
                 case PACKET_CONNECT:
                     addClient(&buf_address);
                     printf("Добавили клиента %s:%d\n\n", buf_ip, buf_port);
+                    // Отправляем в ответ такой же пакет
+                    send_udp(sockfd, &buf_address, (char *) &buf, buf_size);
                     break;
                 case PACKET_SEND_MESSAGE:
                     printf("Пришло сообщение: %s\n\n", buf+1);

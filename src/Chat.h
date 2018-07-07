@@ -26,6 +26,10 @@ extern struct client clients[MAX_CLIENTS];
 /// Выведя при этом строку error
 void escape(char* error);
 
+/// Функция нужна для подключения к клиенту
+/// Отправляет запрос на подключение, пока не получит ответ
+void connectToClient(int sockfd, const struct sockaddr_in* addr);
+
 /// Функция нужна для добавления клиента в массив клиентов
 void addClient(struct sockaddr_in* addr);
 

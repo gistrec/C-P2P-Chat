@@ -10,6 +10,34 @@ void escape(char* error) {
     exit(1);
 }
 
+void connectToClient(int sockfd, const struct sockaddr_in* addr) {
+    // Буффер для сообщений
+    char buf[10];
+    // Длина принятых/отправляемых данных
+    int buf_size;
+
+    int connected = 0;
+
+    while (!connected) {
+        buf_size = createConnectPacket((char *) &buf);
+        send_udp(sockfd, addr, buf, buf_size);
+        printf("Запрос на подключение отправлен\n");
+
+        int address_size;
+        struct sockaddr_in buf_address;
+        // Получаем все данные из сокета
+        while ((buf_size = socket_read(sockfd, (char *) &buf, &buf_address, &address_size)) != -1) {
+            int packet_id = getPacketId((char *) &buf);
+            if (packet_id == PACKET_CONNECT && isEquivalAddr(addr, &buf_address)) {
+                printf("Подключение прошло успешно!\n");
+                return;
+            }
+        }
+        sleep(5);
+        printf("Нет ответа от клиента\n");
+    }
+}
+
 void addClient(struct sockaddr_in* addr) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive == 0) {
