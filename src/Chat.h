@@ -1,20 +1,20 @@
 #ifndef C_P2P_CHAT_CHAT_H
 #define C_P2P_CHAT_CHAT_H
 
-// TODO: убрать лишнее
 #include <stdio.h>  // printf()
 #include <stdlib.h> // atoi()
 #include <string.h> // strcmp()
 #include <unistd.h> // read(), close()
-#include <arpa/inet.h> // struct sockaddr_in
 #include <fcntl.h>  // fcntl()
+#include <arpa/inet.h> // struct sockaddr_in
+#include <sys/ioctl.h> // ioctl()
 
 #include "Network/Packet.h"
 #include "Network/Socket.h"
 
 #define BUFLEN 512     // Максимальный размер буффера
 #define MAX_CLIENTS 20 // Максимальное число клиентов
-#define CHAT_PORT 8888 // Порт
+#define DEFAULT_PORT 8888 // Порт
 
 struct client {
     int isActive;

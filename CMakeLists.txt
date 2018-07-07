@@ -3,4 +3,4 @@ project(C_P2P_Chat C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(C_P2P_Chat src/main.c src/Network/Socket.c src/Network/Packet.c src/Chat.c)
+add_executable(C_P2P_Chat src/main.c src/Chat.c src/Network/Socket.c src/Network/Packet.c src/Utils/Utils.c)

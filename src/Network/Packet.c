@@ -4,8 +4,14 @@ int getPacketId(char* buf) {
     return buf[0];
 }
 
-int createConnectPacket(char* buf) {
-    buf[0] = PACKET_CONNECT;
+int createConnectRequestPacket(char* buf) {
+    buf[0] = PACKET_CONNECT_REQUES;
+    return 1;
+}
+
+
+int createConnectAcceptPacket(char* buf) {
+    buf[0] = PACKET_CONNECT_ACCEPT;
     return 1;
 }
 

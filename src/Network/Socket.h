@@ -12,7 +12,7 @@ void close_socket(int sockfd);
 
 /// Функция нужна для названчения локального адреса сокету
 /// Входные данные - дискриптор сокета, указатель на
-void bind_address(int sockfd, struct sockaddr_in *addr, unsigned short port);
+void bind_address(int sockfd, struct sockaddr_in *addr, int port);
 
 /// Фунция нужна для отправки сообщения
 void send_udp(int sockfd, const struct sockaddr_in *addr, char *buf, int buf_size);

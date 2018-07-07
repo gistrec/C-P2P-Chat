@@ -10,10 +10,10 @@ void close_socket(int sockfd) {
     close(sockfd);
 }
 
-void bind_address(int sockfd, struct sockaddr_in *addr, unsigned short port) {
+void bind_address(int sockfd, struct sockaddr_in *addr, int port) {
     memset((char *) addr, 0, sizeof(*addr));
     addr->sin_family = AF_INET;
-    addr->sin_port = htons(port); // To network byte order
+    addr->sin_port = htons((unsigned short) port); // To network byte order
     addr->sin_addr.s_addr = htonl(INADDR_ANY);
 
     int result = bind(sockfd, (struct sockaddr *) addr, sizeof(*addr));
@@ -21,6 +21,9 @@ void bind_address(int sockfd, struct sockaddr_in *addr, unsigned short port) {
 }
 
 void send_udp(int sockfd, const struct sockaddr_in *addr, char *buf, int buf_size) {
+    // char* buf_ip = inet_ntoa((*addr).sin_addr);
+    // int buf_port = ntohs((*addr).sin_port);
+    // printf("Отправляем пакет: %s:%d\n", buf_ip, buf_port);
     sendto(sockfd, buf, (size_t) buf_size, 0, (struct sockaddr*) addr, sizeof(*addr));
 }
 
@@ -34,7 +37,6 @@ void setNonblockFlag(int descriptor) {
     flags |= O_NONBLOCK;
     fcntl(descriptor, F_SETFL, flags);
 }
-
 
 int isEquivalAddr(const struct sockaddr_in* first, const struct sockaddr_in* second) {
     return  (first->sin_addr.s_addr == second->sin_addr.s_addr) &&
