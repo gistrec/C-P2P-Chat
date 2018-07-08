@@ -4,15 +4,17 @@ int getPacketId(char* buf) {
     return buf[0];
 }
 
-int createConnectRequestPacket(char* buf) {
+int createConnectRequestPacket(char* buf, const char* name) {
     buf[0] = PACKET_CONNECT_REQUES;
-    return 1;
+    strcpy(buf + 1, name);
+    return 1 + (int) strlen(name);
 }
 
 
-int createConnectAcceptPacket(char* buf) {
+int createConnectAcceptPacket(char* buf, const char* name) {
     buf[0] = PACKET_CONNECT_ACCEPT;
-    return 1;
+    strcpy(buf + 1, name);
+    return 1 + (int) strlen(name);
 }
 
 int createMessagePacket(char* buf, int len_msg) {

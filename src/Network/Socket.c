@@ -24,6 +24,7 @@ void send_udp(int sockfd, const struct sockaddr_in *addr, char *buf, int buf_siz
     // char* buf_ip = inet_ntoa((*addr).sin_addr);
     // int buf_port = ntohs((*addr).sin_port);
     // printf("Отправляем пакет: %s:%d\n", buf_ip, buf_port);
+    printf("Пакет: %s\n", buf);
     sendto(sockfd, buf, (size_t) buf_size, 0, (struct sockaddr*) addr, sizeof(*addr));
 }
 

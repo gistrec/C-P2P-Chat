@@ -4,20 +4,21 @@
 // которая для каждого элемента структуры вызовет zero-initialization
 struct client clients[MAX_CLIENTS] = {};
 
+
 void escape(char* error) {
     printf("Error!!!\n");
     printf("%s\n", error);
     exit(EXIT_FAILURE);
 }
 
-void connectToClient(int sockfd, const struct sockaddr_in* addr) {
+void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* name) {
     // Буффер для сообщений
-    char buf[10];
+    char buf[20];
     // Длина принятых/отправляемых данных
     int buf_size;
 
     while (1) {
-        buf_size = createConnectRequestPacket((char *) &buf);
+        buf_size = createConnectRequestPacket((char *) &buf, name);
         send_udp(sockfd, addr, buf, buf_size);
         printf("Запрос на подключение отправлен\n");
         sleep(5);
@@ -29,7 +30,10 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr) {
             int packet_id = getPacketId((char *) &buf);
             if (packet_id == PACKET_CONNECT_ACCEPT && isEquivalAddr(addr, &buf_address)) {
                 printf("Подключение прошло успешно!\n");
-                addClient(&buf_address);
+                char buf_name[MAX_NAME_LENGTH];
+                strcpy((char *) &buf_name, buf + 1);
+                addClient(&buf_address, (char *) &buf_name);
+                printf("Подключились к %s\n", buf_name);
                 return;
             }
         }
@@ -37,11 +41,12 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr) {
     }
 }
 
-void addClient(struct sockaddr_in* addr) {
+void addClient(struct sockaddr_in* addr, const char* name) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive == 0) {
             // Копируем адрес
             memcpy(&(clients[i].address), addr, sizeof(*addr));
+            strcpy((char *) &(clients[i].name), name);
             clients[i].isActive = 1;
             return;
         }

@@ -5,15 +5,22 @@
 #include "Utils/Interface.h"
 
 int main(int argc, char *argv[]) {
-    interface_init();
-    return 0;
-    fflush(stdin);
-
     int connect_port = DEFAULT_PORT;
     int source_port = DEFAULT_PORT;
     char* connect_ip = NULL;
-    parseArg(argc, argv, &connect_ip, &connect_port, &source_port);
+    char name[MAX_NAME_LENGTH] = "";
 
+    parseConnectAddress(argc, argv, &connect_ip, &source_port);
+    parseSourcePort(argc, argv, &source_port);
+    parseName(argc, argv, (char *) &name);
+
+    if (strcmp((char *) &name, "") == 0) {
+        escape("Необходимо ввести имя: -name <имя>");
+    }
+
+
+    fflush(stdin);
+    // interface_init();
 
     // Адрес локального сокета
     struct sockaddr_in local_address;
@@ -33,7 +40,8 @@ int main(int argc, char *argv[]) {
     bind_address(sockfd, &local_address, source_port);
 
     char* ip = inet_ntoa(local_address.sin_addr);
-    printf("Ваш ip и порт: %s:%d\n\n", ip, source_port);
+    printf("Ваш ip и порт: %s:%d\n", ip, source_port);
+    printf("Ваше имя: %s\n", name);
 
     // Устанавливаем неблокирующий флаг дискрипторам
     setNonblockFlag(sockfd);
@@ -44,7 +52,7 @@ int main(int argc, char *argv[]) {
         createAddress(connect_ip, connect_port, &buf_address);
 
         printf("Подключаемся к %s:%d\n", connect_ip, connect_port);
-        connectToClient(sockfd, &buf_address);
+        connectToClient(sockfd, &buf_address, (char *) &name);
     }else {
         printf("Ждем подключения\n");
     }
@@ -56,8 +64,8 @@ int main(int argc, char *argv[]) {
             buf[buf_size] = '\0';
             char* buf_ip = inet_ntoa(buf_address.sin_addr);
             int buf_port = ntohs(buf_address.sin_port);
-            // printf("Входящий пакет: %s\n", buf);
-            // printf("От %s:%d\n\n", buf_ip, buf_port);
+            printf("Входящий пакет: %s\n", buf);
+            printf("От %s:%d\n\n", buf_ip, buf_port);
 
             int packet_id = getPacketId((char *) &buf);
             // TODO: Добавить остальные пакеты
@@ -66,10 +74,12 @@ int main(int argc, char *argv[]) {
                     if (existClient(&buf_address)) {
                         //printf("Получили пакет на подключение от подключенного клиента!\n");
                     }else {
-                        addClient(&buf_address);
+                        char buf_name[MAX_NAME_LENGTH];
+                        strcpy((char *) &buf_name, buf + 1);
+                        addClient(&buf_address, (char *) &buf_name);
                         printf("Подключился клиент %s:%d\n\n", buf_ip, buf_port);
                     }
-                    buf_size = createConnectAcceptPacket((char *) &buf);
+                    buf_size = createConnectAcceptPacket((char *) &buf, (char *) &name);
                     send_udp(sockfd, &buf_address, (char *) &buf, buf_size);
                     break;
                 case PACKET_SEND_MESSAGE:
