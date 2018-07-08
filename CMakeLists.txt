@@ -11,6 +11,7 @@ include(FindCurses)
 set(SOURCE_FILES
         src/main.c
         src/Chat.c
+        src/Clients.c
         src/Network/Socket.c
         src/Network/Packet.c
         src/Utils/Utils.c

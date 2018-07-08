@@ -1,8 +1,5 @@
 #include "Chat.h"
-#include "Network/Socket.h"
-#include "Network/Packet.h"
 #include "Utils/Utils.h"
-#include "Utils/Interface.h"
 
 int main(int argc, char *argv[]) {
     int connect_port = DEFAULT_PORT;
@@ -20,7 +17,7 @@ int main(int argc, char *argv[]) {
 
 
     fflush(stdin);
-    // interface_init();
+    interface_init();
 
     // Адрес локального сокета
     struct sockaddr_in local_address;
@@ -39,9 +36,9 @@ int main(int argc, char *argv[]) {
     // Привязываем адрес к сокету
     bind_address(sockfd, &local_address, source_port);
 
-    char* ip = inet_ntoa(local_address.sin_addr);
-    printf("Ваш ip и порт: %s:%d\n", ip, source_port);
-    printf("Ваше имя: %s\n", name);
+    char* source_ip = inet_ntoa(local_address.sin_addr);
+
+    updateInfoBox(source_ip, source_port, (char *) &name);
 
     // Устанавливаем неблокирующий флаг дискрипторам
     setNonblockFlag(sockfd);
@@ -54,11 +51,11 @@ int main(int argc, char *argv[]) {
         printf("Подключаемся к %s:%d\n", connect_ip, connect_port);
         connectToClient(sockfd, &buf_address, (char *) &name);
     }else {
-        printf("Ждем подключения\n");
+        addMessage("Ждем подключения");
     }
     while (1) {
         // Зачем-то нужно передавать длину адреса. Вообще для определения IPv4/6
-        int address_size;
+        unsigned int address_size;
         // Получаем все данные из сокета
         while ((buf_size = socket_read(sockfd, (char *) &buf, &buf_address, &address_size)) != -1) {
             buf[buf_size] = '\0';
@@ -77,6 +74,9 @@ int main(int argc, char *argv[]) {
                         char buf_name[MAX_NAME_LENGTH];
                         strcpy((char *) &buf_name, buf + 1);
                         addClient(&buf_address, (char *) &buf_name);
+                        updateClientBox();
+
+                        
                         printf("Подключился клиент %s:%d\n\n", buf_ip, buf_port);
                     }
                     buf_size = createConnectAcceptPacket((char *) &buf, (char *) &name);
