@@ -1,29 +1,45 @@
-#include "Display.h"
+#include "Interface.h"
 
-void draw_borders(WINDOW *screen) {
-    int x, y, i;
+WINDOW* initInfoBox() {
+    WINDOW* info = newwin(5, 65, 0, 0);
+    box(info, 0, 0);
+    wrefresh(info);
+    return info;
+}
 
-    getmaxyx(screen, y, x);
+WINDOW* initClientBox() {
+    WINDOW *clients = newwin(25, 15, 0, 65);
+    // touchwin(clients);
+    box(clients, 0, 0);
+    mvwprintw(clients, 1, 1, "   Клиенты   ");
+    mvwprintw(clients, 2, 0, "├─────────────┤");
+    wrefresh(clients);
+    return clients;
+}
 
-    // 4 corners
-    mvwprintw(screen, 0, 0, "+");
-    mvwprintw(screen, y - 1, 0, "+");
-    mvwprintw(screen, 0, x - 1, "+");
-    mvwprintw(screen, y - 1, x - 1, "+");
+// TODO: need touchwin(chat)
+WINDOW* initMessageBox() {
+    WINDOW *chat = newwin(20,65,5,0);
+    box(chat, 0, 0);
+    wrefresh(chat);
+    mvwprintw(chat, 17, 0, "├───────────────────────────────────────────────────────────────┤");
 
-    // sides
-    for (i = 1; i < (y - 1); i++) {
-        mvwprintw(screen, i, 0, "|");
-        mvwprintw(screen, i, x - 1, "|");
-    }
-
-    // top and bottom
-    for (i = 1; i < (x - 1); i++) {
-        mvwprintw(screen, 0, i, "-");
-        mvwprintw(screen, y - 1, i, "-");
-    }
+    wrefresh(chat);
+    return chat;
 }
 
 void interface_init() {
+    setlocale(LC_ALL,"");
+    // Изменяем размер экрана
+    printf("\e[8;25;80;t");
 
+    initscr();
+
+    initInfoBox();
+    initClientBox();
+    initMessageBox();
+
+
+    getchar();
+    endwin();
 }

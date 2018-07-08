@@ -2,8 +2,11 @@
 #include "Network/Socket.h"
 #include "Network/Packet.h"
 #include "Utils/Utils.h"
+#include "Utils/Interface.h"
 
 int main(int argc, char *argv[]) {
+    interface_init();
+    return 0;
     fflush(stdin);
 
     int connect_port = DEFAULT_PORT;

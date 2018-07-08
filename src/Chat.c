@@ -7,7 +7,7 @@ struct client clients[MAX_CLIENTS] = {};
 void escape(char* error) {
     printf("Error!!!\n");
     printf("%s\n", error);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 void connectToClient(int sockfd, const struct sockaddr_in* addr) {
