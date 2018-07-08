@@ -1,6 +1,7 @@
 #ifndef C_P2P_CHAT_CHAT_H
 #define C_P2P_CHAT_CHAT_H
 
+#include <ncursesw/curses.h> // Interface in terminal
 #include <stdio.h>  // printf()
 #include <stdlib.h> // atoi()
 #include <string.h> // strcmp()

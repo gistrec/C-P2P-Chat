@@ -1,6 +1,20 @@
-cmake_minimum_required(VERSION 3.9)
 project(C_P2P_Chat C)
 
+cmake_minimum_required(VERSION 3.9)
 set(CMAKE_C_STANDARD 11)
 
-add_executable(C_P2P_Chat src/main.c src/Chat.c src/Network/Socket.c src/Network/Packet.c src/Utils/Utils.c)
+# Подключаем ncursesw
+set(CURSES_NEED_NCURSES TRUE)
+set(CURSES_NEED_WIDE TRUE)
+include(FindCurses)
+
+set(SOURCE_FILES
+        src/main.c
+        src/Chat.c
+        src/Network/Socket.c
+        src/Network/Packet.c
+        src/Utils/Utils.c
+        src/Utils/Display.c)
+
+add_executable(C_P2P_Chat ${SOURCE_FILES})
+target_link_libraries(C_P2P_Chat ${CURSES_LIBRARIES})
