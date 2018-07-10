@@ -66,8 +66,8 @@ void m_print() {
 }
 
 void addMessage(const char* msg) {
-    printf("%s\n", msg);
-    return;
+    // printf("%s\n", msg);
+    // return;
     for (int i = 1; i < 16; i++) {
         memset((char *) &messages[i - 1], ' ', sizeof(char) * 18);
         strcpy((char *) &messages[i - 1], (char *) &messages[i]);
@@ -100,13 +100,23 @@ void interface_init() {
     printf("\e[8;25;80;t");
 
     initscr();
-    wgetch(box_messages);
 
+    // Указываем, что нам нужна построчная буфферизация
+    nocbreak();
+    //cbreak();
+    nodelay(stdscr, TRUE);
+    echo();
+    // noraw();
+    // curs_set(0);
+    wgetch(box_messages);
     initInfoBox();
     initMessageBox();
     initClientBox();
-
     moveCursor();
+    sleep(5);
+    timeout(0);
+    wscanw(box_messages, NULL);
+    wscanw(box_messages, 0);
 }
 
 void interface_close() {

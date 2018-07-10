@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
 
     fflush(stdin);
-    //interface_init();
+    interface_init();
 
     // Адрес локального сокета
     struct sockaddr_in local_address;
@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
         // Получаем все данные из сокета
         while ((buf_size = socket_read(sockfd, (char *) &buf, &buf_address, &address_size)) != -1) {
             buf[buf_size] = '\0';
+            char* buf_name = NULL;
             char* buf_ip = inet_ntoa(buf_address.sin_addr);
             int buf_port = ntohs(buf_address.sin_port);
             // printf("Входящий пакет: %s\n", buf);
@@ -86,14 +87,20 @@ int main(int argc, char *argv[]) {
                     send_udp(sockfd, &buf_address, (char *) &buf, buf_size);
                     break;
                 case PACKET_SEND_MESSAGE:
-                    sprintf((char *) &buf, "Вы: %s", buf+1);
+                    buf_name = getName(&buf_address);
+                    char buf2[100];
+                    sprintf((char *) &buf2, "%s: %s", buf_name, buf+1);
+                    addMessage(buf2);
                     break;
             }
         }
         // Получаем все введенные строки
         while ((buf_size = (int) read(0, &buf, BUFLEN)) != -1) {
-            buf[buf_size] = '\0';
-            addMessage((char *)&buf);
+            buf[buf_size - 1] = '\0'; // Последний символ - перенос на новую строку
+            char buf2[100];
+            sprintf((char *) &buf2, "Вы: %s", buf);
+
+            addMessage((char *) &buf2);
             // printf("Отправляем всем сообщение: %s\n", buf);
             createMessagePacket((char *) &buf, buf_size);
             sendPacket(sockfd, (char *) &buf, buf_size+1);

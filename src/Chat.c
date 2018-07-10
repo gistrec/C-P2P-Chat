@@ -15,8 +15,8 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* nam
     while (1) {
         buf_size = createConnectRequestPacket((char *) &buf, name);
         send_udp(sockfd, addr, buf, buf_size);
-        addMessage("Запрос на подключение отправлен");
-        sleep(5);
+        // addMessage("Запрос на подключение отправлен");
+        sleep(2);
 
         struct sockaddr_in buf_address = {};
         unsigned int address_size = sizeof(struct sockaddr_in); // Оказывается нужна инициализация!!!
@@ -25,7 +25,6 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* nam
             buf[buf_size] = '\0';
             int packet_id = getPacketId((char *) &buf);
             if (packet_id == PACKET_CONNECT_ACCEPT && isEquivalAddr(addr, &buf_address)) {
-                addMessage("Подключение прошло успешно!");
 
                 char buf_name[MAX_NAME_LENGTH * 2];
                 strcpy((char *) &buf_name, buf + 1);
@@ -37,7 +36,7 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* nam
                 return;
             }
         }
-        addMessage("Нет ответа от клиента");
+        // addMessage("Нет ответа от клиента");
     }
 }
 
