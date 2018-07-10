@@ -8,32 +8,36 @@ void escape(char* error) {
 
 void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* name) {
     // Буффер для сообщений
-    char buf[20];
+    char buf[100];
     // Длина принятых/отправляемых данных
     int buf_size;
 
     while (1) {
         buf_size = createConnectRequestPacket((char *) &buf, name);
         send_udp(sockfd, addr, buf, buf_size);
-        printf("Запрос на подключение отправлен\n");
+        addMessage("Запрос на подключение отправлен");
         sleep(5);
 
-        int address_size;
-        struct sockaddr_in buf_address;
+        struct sockaddr_in buf_address = {};
+        unsigned int address_size = sizeof(struct sockaddr_in); // Оказывается нужна инициализация!!!
         // Получаем все данные из сокета
         while ((buf_size = socket_read(sockfd, (char *) &buf, &buf_address, &address_size)) != -1) {
+            buf[buf_size] = '\0';
             int packet_id = getPacketId((char *) &buf);
             if (packet_id == PACKET_CONNECT_ACCEPT && isEquivalAddr(addr, &buf_address)) {
-                printf("Подключение прошло успешно!\n");
-                char buf_name[MAX_NAME_LENGTH];
+                addMessage("Подключение прошло успешно!");
+
+                char buf_name[MAX_NAME_LENGTH * 2];
                 strcpy((char *) &buf_name, buf + 1);
                 addClient(&buf_address, (char *) &buf_name);
                 updateClientBox();
-                printf("Подключились к %s\n", buf_name);
+
+                sprintf((char *) &buf, "Подключились к %s", buf_name);
+                addMessage((char *) &buf);
                 return;
             }
         }
-        printf("Нет ответа от клиента\n");
+        addMessage("Нет ответа от клиента");
     }
 }
 

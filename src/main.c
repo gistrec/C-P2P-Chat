@@ -1,6 +1,7 @@
 #include "Chat.h"
 #include "Utils/Utils.h"
 
+
 int main(int argc, char *argv[]) {
     int connect_port = DEFAULT_PORT;
     int source_port = DEFAULT_PORT;
@@ -17,7 +18,7 @@ int main(int argc, char *argv[]) {
 
 
     fflush(stdin);
-    interface_init();
+    //interface_init();
 
     // Адрес локального сокета
     struct sockaddr_in local_address;
@@ -48,7 +49,9 @@ int main(int argc, char *argv[]) {
     if (connect_ip != NULL) {
         createAddress(connect_ip, connect_port, &buf_address);
 
-        printf("Подключаемся к %s:%d\n", connect_ip, connect_port);
+        sprintf((char *) &buf, "Подключаемся к %s:%d", connect_ip, connect_port);
+        addMessage((char *) &buf);
+
         connectToClient(sockfd, &buf_address, (char *) &name);
     }else {
         addMessage("Ждем подключения");
@@ -61,8 +64,8 @@ int main(int argc, char *argv[]) {
             buf[buf_size] = '\0';
             char* buf_ip = inet_ntoa(buf_address.sin_addr);
             int buf_port = ntohs(buf_address.sin_port);
-            printf("Входящий пакет: %s\n", buf);
-            printf("От %s:%d\n\n", buf_ip, buf_port);
+            // printf("Входящий пакет: %s\n", buf);
+            // printf("От %s:%d\n\n", buf_ip, buf_port);
 
             int packet_id = getPacketId((char *) &buf);
             // TODO: Добавить остальные пакеты
@@ -76,20 +79,21 @@ int main(int argc, char *argv[]) {
                         addClient(&buf_address, (char *) &buf_name);
                         updateClientBox();
 
-                        
-                        printf("Подключился клиент %s:%d\n\n", buf_ip, buf_port);
+                        sprintf((char *) &buf, "Подключился клиент %s [%s:%d]", buf_name, buf_ip, buf_port);
+                        addMessage((char *) &buf);
                     }
                     buf_size = createConnectAcceptPacket((char *) &buf, (char *) &name);
                     send_udp(sockfd, &buf_address, (char *) &buf, buf_size);
                     break;
                 case PACKET_SEND_MESSAGE:
-                    printf("%s:%d => %s\n", buf_ip, buf_port, buf+1);
+                    sprintf((char *) &buf, "Вы: %s", buf+1);
                     break;
             }
         }
         // Получаем все введенные строки
         while ((buf_size = (int) read(0, &buf, BUFLEN)) != -1) {
             buf[buf_size] = '\0';
+            addMessage((char *)&buf);
             // printf("Отправляем всем сообщение: %s\n", buf);
             createMessagePacket((char *) &buf, buf_size);
             sendPacket(sockfd, (char *) &buf, buf_size+1);
