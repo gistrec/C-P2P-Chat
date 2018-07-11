@@ -3,6 +3,8 @@
 WINDOW* box_info = NULL;
 WINDOW* box_client = NULL;
 WINDOW* box_messages = NULL;
+WINDOW* box_input = NULL;
+
 char messages[16][126] = {{0}};
 
 void initInfoBox() {
@@ -20,16 +22,19 @@ void initClientBox() {
 }
 
 void initMessageBox() {
-    box_messages = newwin(20,65,5,0);
+    box_messages = newwin(17, 65, 5, 0);
     box(box_messages, 0, 0);
-    mvwprintw(box_messages, 17, 0, "├───────────────────────────────────────────────────────────────┤");
+    mvwprintw(box_messages, 16, 0, "│                                                               │");
 
     wrefresh(box_messages);
 }
 
-void moveCursor() {
-    wmove(box_messages, 18, 1);
-    wrefresh(box_messages);
+void initInputBox() {
+    box_input = newwin(3, 65, 22, 0);
+    box(box_input, 0, 0);
+    mvwprintw(box_input, 0, 0, "├───────────────────────────────────────────────────────────────┤");;
+
+    wrefresh(box_input);
 }
 
 void updateClientBox() {
@@ -44,25 +49,19 @@ void updateClientBox() {
             position++;
         }
     }
-    moveCursor();
+
     wrefresh(box_client);
 }
 
 void updateMessageBox() {
     wclear(box_messages);
     box(box_messages, 0, 0);
-    mvwprintw(box_messages, 17, 0, "├───────────────────────────────────────────────────────────────┤");
+    mvwprintw(box_messages, 16, 0, "│                                                               │");
     for (int i = 0; i < 16; i++) {
         mvwprintw(box_messages, i + 1, 1, messages[i]);
     }
-    moveCursor();
-    wrefresh(box_messages);
-}
 
-void m_print() {
-    for (int i = 0; i < 16; i++) {
-        printf("%d: %s\n", i, messages[i]);
-    }
+    wrefresh(box_messages);
 }
 
 void addMessage(const char* msg) {
@@ -90,7 +89,7 @@ void updateInfoBox(char* ip, int port, char* name) {
     // Печатаем имя
     mvwprintw(box_info, 2, 1, "Ваш ник: ");
     mvwprintw(box_info, 2, 13, name);
-    moveCursor();
+
     wrefresh(box_info);
 }
 
@@ -101,24 +100,47 @@ void interface_init() {
 
     initscr();
 
-    // Указываем, что нам нужна построчная буфферизация
-    nocbreak();
-    //cbreak();
-    nodelay(stdscr, TRUE);
-    echo();
-    // noraw();
-    // curs_set(0);
-    wgetch(box_messages);
     initInfoBox();
     initMessageBox();
     initClientBox();
-    moveCursor();
-    sleep(5);
-    timeout(0);
-    wscanw(box_messages, NULL);
-    wscanw(box_messages, 0);
+    initInputBox();
+
+    keypad(box_input, TRUE);
+    echo();
+    cbreak();      // disable line-buffering
+    timeout(100);  // wait 100 milliseconds for input
+
+}
+
+int readInput(char* buf, int* size) {
+    int symbol = 0;
+    // getch (c cbreak и timeout)
+    // ждет 100мс и возвращает ERR если ничего не введено
+    while ((symbol = wgetch(box_input)) != ERR) {
+        if (symbol == '\n') {
+            // Добавляем сообщение
+            // Отчищаем буфер
+            for (int i = 0; i < *size; i++) {
+                mvwprintw(box_input, 1, i + 1, " ");
+            }
+            return 1;
+        }else if (symbol == KEY_BACKSPACE) {
+            // Удаляем последний элемент
+            mvwprintw(box_input, 1, *size, " ");
+            buf[--(*size)] = '\0';
+        }else if (*size < 99) {
+            buf[(*size)++] = (char) symbol;
+        }
+    }
+    mvwprintw(box_input, 1, 1, (char *)buf);
+    return 0;
 }
 
 void interface_close() {
+    delwin(box_info);
+    delwin(box_client);
+    delwin(box_client);
+    delwin(box_messages);
+
     endwin();
 }

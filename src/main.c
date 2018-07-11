@@ -94,19 +94,22 @@ int main(int argc, char *argv[]) {
                     break;
             }
         }
-        // Получаем все введенные строки
-        while ((buf_size = (int) read(0, &buf, BUFLEN)) != -1) {
-            buf[buf_size - 1] = '\0'; // Последний символ - перенос на новую строку
-            char buf2[100];
-            sprintf((char *) &buf2, "Вы: %s", buf);
+        // TODO: NEED REFACTORING!!!!!!!!!!!!!!!!
+        static int size = 0;
+        static char buf_read[100] = {0};
+        while (readInput((char *) buf_read, &size) == 1) {
+            sprintf((char *) &buf, "Вы: %s", buf_read);
 
-            addMessage((char *) &buf2);
+            addMessage((char *) &buf);
             // printf("Отправляем всем сообщение: %s\n", buf);
-            createMessagePacket((char *) &buf, buf_size);
-            sendPacket(sockfd, (char *) &buf, buf_size+1);
+            createMessagePacket((char *) &buf_read, size);
+            sendPacket(sockfd, (char *) &buf_read, size + 1);
+            memset(buf_read, 0, 100);
+            size = 0;
         }
-        sleep((unsigned int) 1);
+        wrefresh(box_input);
     }
     close_socket(sockfd);
+    interface_close();
     return 0;
 }
