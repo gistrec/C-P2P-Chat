@@ -1,19 +1,19 @@
 #include "Interface.h"
 
-WINDOW* box_info = NULL;
-WINDOW* box_client = NULL;
-WINDOW* box_messages = NULL;
-WINDOW* box_input = NULL;
+static WINDOW* box_info = NULL;
+static WINDOW* box_client = NULL;
+static WINDOW* box_messages = NULL;
+static WINDOW* box_input = NULL;
 
-char messages[16][126] = {{0}};
+static char messages[16][126] = {{0}};
 
-void initInfoBox() {
+static void initInfoBox() {
     box_info = newwin(5, 65, 0, 0);
     box(box_info, 0, 0);
     wrefresh(box_info);
 }
 
-void initClientBox() {
+static void initClientBox() {
     box_client = newwin(25, 15, 0, 65);
     box(box_client, 0, 0);
     mvwprintw(box_client, 1, 1, "   Клиенты   ");
@@ -21,7 +21,7 @@ void initClientBox() {
     wrefresh(box_client);
 }
 
-void initMessageBox() {
+static void initMessageBox() {
     box_messages = newwin(17, 65, 5, 0);
     box(box_messages, 0, 0);
     mvwprintw(box_messages, 16, 0, "│                                                               │");
@@ -29,7 +29,7 @@ void initMessageBox() {
     wrefresh(box_messages);
 }
 
-void initInputBox() {
+static void initInputBox() {
     box_input = newwin(3, 65, 22, 0);
     box(box_input, 0, 0);
     mvwprintw(box_input, 0, 0, "├───────────────────────────────────────────────────────────────┤");;
@@ -53,7 +53,7 @@ void updateClientBox() {
     wrefresh(box_client);
 }
 
-void updateMessageBox() {
+static void updateMessageBox() {
     wclear(box_messages);
     box(box_messages, 0, 0);
     mvwprintw(box_messages, 16, 0, "│                                                               │");
@@ -76,7 +76,7 @@ void addMessage(const char* msg) {
 }
 
 
-void updateInfoBox(char* ip, int port, char* name) {
+void updateInfoBox(const char* name, const char* ip, int port) {
     wclear(box_info);
     box(box_info, 0, 0);
     // Печатаем адрес
@@ -126,8 +126,10 @@ int readInput(char* buf, int* size) {
             return 1;
         }else if (symbol == KEY_BACKSPACE) {
             // Удаляем последний элемент
-            mvwprintw(box_input, 1, *size, " ");
-            buf[--(*size)] = '\0';
+            if (*size > 0) {
+                mvwprintw(box_input, 1, (*size), " ");
+                buf[--(*size)] = 0;
+            }
         }else if (*size < 99) {
             buf[(*size)++] = (char) symbol;
         }

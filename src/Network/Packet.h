@@ -32,7 +32,7 @@
 // #define PACKET_MESSAGE_ACCEPT '5';
 
 // Получаем id пакета
-int getPacketId(char* data);
+int getPacketId(const char* data);
 
 // Записываем в буффер пакет
 // Возвращаем кол-во записанных байт

@@ -11,7 +11,6 @@ void parseConnectAddress(int argc, char *argv[], char** ip, int* port) {
             }
             return;
         }
-
     }
 }
 

@@ -28,6 +28,6 @@ void setNonblockFlag(int descriptor);
 int isEquivalAddr(const struct sockaddr_in* first, const struct sockaddr_in* second);
 
 /// Создаем структуру адреса
-void createAddress(char* ip, int port, struct sockaddr_in* addr);
+void createAddress(const char* ip, int port, struct sockaddr_in* addr);
 
 #endif //C_P2P_CHAT_SOCKET_H

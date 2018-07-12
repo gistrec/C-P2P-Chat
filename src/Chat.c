@@ -1,6 +1,6 @@
 #include "Chat.h"
 
-void escape(char* error) {
+void escape(const char* error) {
     printf("Error!!!\n");
     printf("%s\n", error);
     exit(EXIT_FAILURE);
@@ -40,7 +40,7 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* nam
     }
 }
 
-void sendPacket(int sockfd, char* buf, int buf_size) {
+void sendPacket(int sockfd, const char* buf, int buf_size) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive == 1) {
             send_udp(sockfd, &(clients[i].address), buf, buf_size);

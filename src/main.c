@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
     char* source_ip = inet_ntoa(local_address.sin_addr);
 
-    updateInfoBox(source_ip, source_port, (char *) &name);
+    updateInfoBox((char *) &name, source_ip, source_port);
 
     // Устанавливаем неблокирующий флаг дискрипторам
     setNonblockFlag(sockfd);
@@ -107,7 +107,6 @@ int main(int argc, char *argv[]) {
             memset(buf_read, 0, 100);
             size = 0;
         }
-        wrefresh(box_input);
     }
     close_socket(sockfd);
     interface_close();

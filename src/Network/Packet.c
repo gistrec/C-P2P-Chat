@@ -1,6 +1,6 @@
 #include "Packet.h"
 
-int getPacketId(char* buf) {
+int getPacketId(const char* buf) {
     return buf[0];
 }
 

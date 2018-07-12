@@ -44,7 +44,7 @@ int isEquivalAddr(const struct sockaddr_in* first, const struct sockaddr_in* sec
             (first->sin_port == second->sin_port);
 }
 
-void createAddress(char* ip, int port, struct sockaddr_in* addr) {
+void createAddress(const char* ip, int port, struct sockaddr_in* addr) {
     addr->sin_family = AF_INET;
     addr->sin_addr.s_addr = inet_addr(ip);
     addr->sin_port = htons(port);
