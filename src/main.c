@@ -1,16 +1,24 @@
 #include "Chat.h"
-#include "Network/Socket.h"
-#include "Network/Packet.h"
 #include "Utils/Utils.h"
 
-int main(int argc, char *argv[]) {
-    fflush(stdin);
 
+int main(int argc, char *argv[]) {
     int connect_port = DEFAULT_PORT;
     int source_port = DEFAULT_PORT;
     char* connect_ip = NULL;
-    parseArg(argc, argv, &connect_ip, &connect_port, &source_port);
+    char name[MAX_NAME_LENGTH] = "";
 
+    parseConnectAddress(argc, argv, &connect_ip, &source_port);
+    parseSourcePort(argc, argv, &source_port);
+    parseName(argc, argv, (char *) &name);
+
+    if (strcmp((char *) &name, "") == 0) {
+        escape("Необходимо ввести имя: -name <имя>");
+    }
+
+
+    fflush(stdin);
+    interface_init();
 
     // Адрес локального сокета
     struct sockaddr_in local_address;
@@ -29,8 +37,9 @@ int main(int argc, char *argv[]) {
     // Привязываем адрес к сокету
     bind_address(sockfd, &local_address, source_port);
 
-    char* ip = inet_ntoa(local_address.sin_addr);
-    printf("Ваш ip и порт: %s:%d\n\n", ip, source_port);
+    char* source_ip = inet_ntoa(local_address.sin_addr);
+
+    updateInfoBox((char *) &name, source_ip, source_port);
 
     // Устанавливаем неблокирующий флаг дискрипторам
     setNonblockFlag(sockfd);
@@ -40,17 +49,20 @@ int main(int argc, char *argv[]) {
     if (connect_ip != NULL) {
         createAddress(connect_ip, connect_port, &buf_address);
 
-        printf("Подключаемся к %s:%d\n", connect_ip, connect_port);
-        connectToClient(sockfd, &buf_address);
+        sprintf((char *) &buf, "Подключаемся к %s:%d", connect_ip, connect_port);
+        addMessage((char *) &buf);
+
+        connectToClient(sockfd, &buf_address, (char *) &name);
     }else {
-        printf("Ждем подключения\n");
+        addMessage("Ждем подключения");
     }
     while (1) {
         // Зачем-то нужно передавать длину адреса. Вообще для определения IPv4/6
-        int address_size;
+        unsigned int address_size;
         // Получаем все данные из сокета
         while ((buf_size = socket_read(sockfd, (char *) &buf, &buf_address, &address_size)) != -1) {
             buf[buf_size] = '\0';
+            char* buf_name = NULL;
             char* buf_ip = inet_ntoa(buf_address.sin_addr);
             int buf_port = ntohs(buf_address.sin_port);
             // printf("Входящий пакет: %s\n", buf);
@@ -63,26 +75,40 @@ int main(int argc, char *argv[]) {
                     if (existClient(&buf_address)) {
                         //printf("Получили пакет на подключение от подключенного клиента!\n");
                     }else {
-                        addClient(&buf_address);
-                        printf("Подключился клиент %s:%d\n\n", buf_ip, buf_port);
+                        char buf_name[MAX_NAME_LENGTH];
+                        strcpy((char *) &buf_name, buf + 1);
+                        addClient(&buf_address, (char *) &buf_name);
+                        updateClientBox();
+
+                        sprintf((char *) &buf, "Подключился клиент %s [%s:%d]", buf_name, buf_ip, buf_port);
+                        addMessage((char *) &buf);
                     }
-                    buf_size = createConnectAcceptPacket((char *) &buf);
+                    buf_size = createConnectAcceptPacket((char *) &buf, (char *) &name);
                     send_udp(sockfd, &buf_address, (char *) &buf, buf_size);
                     break;
                 case PACKET_SEND_MESSAGE:
-                    printf("%s:%d => %s\n", buf_ip, buf_port, buf+1);
+                    buf_name = getName(&buf_address);
+                    char buf2[100];
+                    sprintf((char *) &buf2, "%s: %s", buf_name, buf+1);
+                    addMessage(buf2);
                     break;
             }
         }
-        // Получаем все введенные строки
-        while ((buf_size = (int) read(0, &buf, BUFLEN)) != -1) {
-            buf[buf_size] = '\0';
+        // TODO: NEED REFACTORING!!!!!!!!!!!!!!!!
+        static int size = 0;
+        static char buf_read[100] = {0};
+        while (readInput((char *) buf_read, &size) == 1) {
+            sprintf((char *) &buf, "Вы: %s", buf_read);
+
+            addMessage((char *) &buf);
             // printf("Отправляем всем сообщение: %s\n", buf);
-            createMessagePacket((char *) &buf, buf_size);
-            sendPacket(sockfd, (char *) &buf, buf_size+1);
+            createMessagePacket((char *) &buf_read, size);
+            sendPacket(sockfd, (char *) &buf_read, size + 1);
+            memset(buf_read, 0, 100);
+            size = 0;
         }
-        sleep((unsigned int) 1);
     }
     close_socket(sockfd);
+    interface_close();
     return 0;
 }

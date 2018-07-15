@@ -24,6 +24,7 @@ void send_udp(int sockfd, const struct sockaddr_in *addr, char *buf, int buf_siz
     // char* buf_ip = inet_ntoa((*addr).sin_addr);
     // int buf_port = ntohs((*addr).sin_port);
     // printf("Отправляем пакет: %s:%d\n", buf_ip, buf_port);
+    // printf("Пакет: %s\n", buf);
     sendto(sockfd, buf, (size_t) buf_size, 0, (struct sockaddr*) addr, sizeof(*addr));
 }
 
@@ -43,7 +44,7 @@ int isEquivalAddr(const struct sockaddr_in* first, const struct sockaddr_in* sec
             (first->sin_port == second->sin_port);
 }
 
-void createAddress(char* ip, int port, struct sockaddr_in* addr) {
+void createAddress(const char* ip, int port, struct sockaddr_in* addr) {
     addr->sin_family = AF_INET;
     addr->sin_addr.s_addr = inet_addr(ip);
     addr->sin_port = htons(port);

@@ -22,22 +22,22 @@
 
 // Пакет отправляется участнику для получения всех подключенных клиентов
 // В ответ приходит список всех подключенных клиентов
-// #define PACKET_GET_USERS '4'
+// #define PACKET_GET_USERS '5'
 
 // Пакет отправляется всем участникам - содержит сообщение
 // В ответ нужно отправить PACKET_MESSAGE_ACCEPT
-#define PACKET_SEND_MESSAGE '5'
+#define PACKET_SEND_MESSAGE '6'
 
 // Пакет отправляется участнику в ответ на пакет PACKET_SEND_MESSAGE;
 // #define PACKET_MESSAGE_ACCEPT '5';
 
 // Получаем id пакета
-int getPacketId(char* data);
+int getPacketId(const char* data);
 
 // Записываем в буффер пакет
 // Возвращаем кол-во записанных байт
-int createConnectRequestPacket(char* buf);
-int createConnectAcceptPacket(char* buf);
+int createConnectRequestPacket(char* buf, const char* name);
+int createConnectAcceptPacket(char* buf, const char* name);
 int createMessagePacket(char* buf, int len_msg);
 //int createAcceptPacket(char* buf);
 //int createGetUsersPacket(char* buf);
