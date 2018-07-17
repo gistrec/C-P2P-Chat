@@ -37,9 +37,11 @@ int createListUsersPacket(char* buf) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive == 1) {
             buf[1]++;
-            for (int j = 0; j < sizeof(struct sockaddr_in); j++) {
+            memcpy(buf + pos, &(clients->address), sizeof(struct sockaddr_in));
+            pos += sizeof(struct sockaddr_in);
+            /*for (int j = 0; j < sizeof(struct sockaddr_in); j++) {
                 buf[pos++] = ((char*) &clients->address)[j];
-            }
+            }*/
         }
     }
     return pos;

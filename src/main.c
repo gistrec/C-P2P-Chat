@@ -64,6 +64,8 @@ int main(int argc, char *argv[]) {
         unsigned int address_size = sizeof(local_address);
         // Получаем все данные из сокета
         while ((buf_read_size = socket_read(sockfd, (char *) &buf_read, &buf_address, &address_size)) != -1) {
+            // Не принимаем пакеты от себя же
+            if (isEquivalAddr(&local_address, &buf_address)) continue;
             buf_read[buf_read_size] = '\0';
             char buf_name[MAX_NAME_LENGTH];
             char* buf_ip = inet_ntoa(buf_address.sin_addr);
@@ -87,6 +89,16 @@ int main(int argc, char *argv[]) {
                     buf_send_size = createConnectAcceptPacket((char *) &buf_send, (char *) &name);
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     break;
+                case PACKET_CONNECT_ACCEPT:
+                    if (!existClient(&buf_address)) {
+                        strcpy((char *) &buf_name, buf_read + 1);
+                        addClient(&buf_address, (char *) &buf_name);
+                        updateClientBox();
+
+                        sprintf((char *) &buf_send, "Подключились к %s", buf_name);
+                        addMessage((char *) &buf_send);
+                    }
+                    break;
                 case PACKET_SEND_MESSAGE:
                     getName(&buf_address, (char *) &buf_name);
                     sprintf((char *) &buf_send, "%s: %s", buf_name, buf_read + 1);
@@ -97,15 +109,14 @@ int main(int argc, char *argv[]) {
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     break;
                 case PACKET_LIST_USERS:
-                    buf_send_size = createConnectRequestPacket((char *) &buf_send, name);
+                    buf_send_size = createConnectRequestPacket((char *) &buf_send, (char *) &name);
                     // Загружаем клиентов
-
-                    for (int i = 0; i < buf_read[i]; i++) {
-                        for (int j = 0; j < sizeof(struct sockaddr_in); j++) {
-                            ((char *) &buf_address)[2 + i * sizeof(struct sockaddr_in) + j] = buf_read[i];
-                        }
+                    int count =  buf_read[1];
+                    for (int i = 0; i < count; i++) {
+                        memcpy(&(buf_address), buf_read + 2, sizeof(struct sockaddr_in));
                         send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     }
+                    break;
             }
         }
         // TODO: NEED REFACTORING!!!!!!!!!!!!!!!!

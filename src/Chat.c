@@ -33,6 +33,10 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* nam
 
                 sprintf((char *) &buf, "Подключились к %s", buf_name);
                 addMessage((char *) &buf);
+
+                // Отправляем запрос на получение клиентов
+                buf_size = createRequestUsersPacket((char *) &buf);
+                send_udp(sockfd, addr, buf, buf_size);
                 return;
             }
         }
