@@ -24,3 +24,25 @@ int createMessagePacket(char* buf, int len_msg) {
     buf[0] = PACKET_SEND_MESSAGE;
     return 1 + len_msg;
 }
+
+int createRequestUsersPacket(char* buf) {
+    buf[0] = PACKET_REQUEST_USERS;
+    return 1;
+}
+
+int createListUsersPacket(char* buf) {
+    buf[0] = PACKET_LIST_USERS;
+    buf[1] = 0; // Кол-во клиентов
+
+    int pos = 2;
+    // Для всех клиентов
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (clients[i].isActive == 1) {
+            buf[1]++;
+            for (int j = 0; j < sizeof(struct sockaddr_in); j++) {
+                buf[pos++] = ((char*) &clients->address)[j];
+            }
+        }
+    }
+    return pos;
+}
