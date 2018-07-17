@@ -43,12 +43,12 @@ void removeClient(const struct sockaddr_in* addr) {
 }
 
 
-char* getName(const struct sockaddr_in* addr) {
+void getName(const struct sockaddr_in* addr, char* name) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive == 1) {
             // Сравниваем ip
             if (isEquivalAddr(addr, &(clients[i].address))) {
-                return (char *) &(clients[i].name);
+                strcpy(name, clients[i].name);
             }
         }
     }

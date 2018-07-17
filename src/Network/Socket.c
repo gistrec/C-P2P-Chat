@@ -20,7 +20,7 @@ void bind_address(int sockfd, struct sockaddr_in *addr, int port) {
     if (result == -1) escape("Can't bind address");
 }
 
-void send_udp(int sockfd, const struct sockaddr_in *addr, char *buf, int buf_size) {
+void send_udp(int sockfd, const struct sockaddr_in *addr, const char *buf, int buf_size) {
     // char* buf_ip = inet_ntoa((*addr).sin_addr);
     // int buf_port = ntohs((*addr).sin_port);
     // printf("Отправляем пакет: %s:%d\n", buf_ip, buf_port);

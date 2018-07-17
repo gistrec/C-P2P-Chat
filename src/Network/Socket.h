@@ -15,7 +15,7 @@ void close_socket(int sockfd);
 void bind_address(int sockfd, struct sockaddr_in *addr, int port);
 
 /// Фунция нужна для отправки сообщения
-void send_udp(int sockfd, const struct sockaddr_in *addr, char *buf, int buf_size);
+void send_udp(int sockfd, const struct sockaddr_in *addr, const char *buf, int buf_size);
 
 /// Блокирующая функция для получения данных с сокета
 /// Возвращает кол-во байт, которые были получены

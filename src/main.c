@@ -27,11 +27,12 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in buf_address;
 
     // Буффер для сообщений
-    char buf_read[BUFLEN];
-    char buf_send[BUFLEN];
+    char buf_read[BUFLEN] = {0};
+    char buf_send[BUFLEN] = {0};
+
     // Длина принятых/отправляемых данных
-    int buf_read_size;
-    int buf_send_size;
+    int buf_read_size = 0;
+    int buf_send_size = 0;
 
     // Создаем сокет
     int sockfd = create_socket();
@@ -60,14 +61,14 @@ int main(int argc, char *argv[]) {
     }
     while (1) {
         // Зачем-то нужно передавать длину адреса. Вообще для определения IPv4/6
-        unsigned int address_size;
+        unsigned int address_size = sizeof(local_address);
         // Получаем все данные из сокета
         while ((buf_read_size = socket_read(sockfd, (char *) &buf_read, &buf_address, &address_size)) != -1) {
             buf_read[buf_read_size] = '\0';
-            char* buf_name = NULL;
+            char buf_name[MAX_NAME_LENGTH];
             char* buf_ip = inet_ntoa(buf_address.sin_addr);
             int buf_port = ntohs(buf_address.sin_port);
-            // printf("Входящий пакет: %s\n", buf);
+            // printf("Входящий пакет: %s\n", buf_read);
             // printf("От %s:%d\n\n", buf_ip, buf_port);
 
             int packet_id = getPacketId((char *) &buf_read);
@@ -77,11 +78,9 @@ int main(int argc, char *argv[]) {
                     if (existClient(&buf_address)) {
                         //printf("Получили пакет на подключение от подключенного клиента!\n");
                     }else {
-                        char buf_name[MAX_NAME_LENGTH];
                         strcpy((char *) &buf_name, buf_read + 1);
                         addClient(&buf_address, (char *) &buf_name);
                         updateClientBox();
-
                         sprintf((char *) &buf_send, "Подключился клиент %s [%s:%d]", buf_name, buf_ip, buf_port);
                         addMessage((char *) &buf_send);
                     }
@@ -89,7 +88,7 @@ int main(int argc, char *argv[]) {
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     break;
                 case PACKET_SEND_MESSAGE:
-                    buf_name = getName(&buf_address);
+                    getName(&buf_address, (char *) &buf_name);
                     sprintf((char *) &buf_send, "%s: %s", buf_name, buf_read + 1);
                     addMessage(buf_send);
                     break;
@@ -103,24 +102,24 @@ int main(int argc, char *argv[]) {
 
                     for (int i = 0; i < buf_read[i]; i++) {
                         for (int j = 0; j < sizeof(struct sockaddr_in); j++) {
-                            ((char *) &buf_address)[2 + i * sizeof(struct sockaddr_in) + j] = buf[i];
+                            ((char *) &buf_address)[2 + i * sizeof(struct sockaddr_in) + j] = buf_read[i];
                         }
-                        send_udp(sockfd, &buf_address, (char))
+                        send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     }
             }
         }
         // TODO: NEED REFACTORING!!!!!!!!!!!!!!!!
-        static int size = 0;
-        static char buf_read[100] = {0};
-        while (readInput((char *) buf_read, &size) == 1) {
-            sprintf((char *) &buf_read, "Вы: %s", buf_read);
+        static int size_input = 0;
+        static char buf_input[100] = {0};
+        while (readInput((char *) buf_input, &size_input) == 1) {
+            sprintf((char *) &buf_send, "Вы: %s", buf_input);
 
-            addMessage((char *) &buf_read);
+            addMessage((char *) &buf_send);
             // printf("Отправляем всем сообщение: %s\n", buf);
-            createMessagePacket((char *) &buf_read, size);
-            sendPacket(sockfd, (char *) &buf_read, size + 1);
-            memset(buf_read, 0, 100);
-            size = 0;
+            createMessagePacket((char *) &buf_send, (char *) &buf_input, size_input);
+            sendPacket(sockfd, (char *) &buf_send, size_input + 1);
+            memset(buf_input, 0, 100);
+            size_input = 0;
         }
     }
     close_socket(sockfd);

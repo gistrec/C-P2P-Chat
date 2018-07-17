@@ -39,7 +39,7 @@ int getPacketId(const char* data);
 // Возвращаем кол-во записанных байт
 int createConnectRequestPacket(char* buf, const char* name);
 int createConnectAcceptPacket(char* buf, const char* name);
-int createMessagePacket(char* buf, int len_msg);
+int createMessagePacket(char* buf_send, char* buf_input, int len_msg);
 //int createAcceptPacket(char* buf);
 int createRequestUsersPacket(char* buf);
 int createListUsersPacket(char* buf);
