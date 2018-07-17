@@ -20,6 +20,6 @@ int existClient(const struct sockaddr_in* addr);
 /// Функция нужна для удаления клиента из массива клиентов
 void removeClient(const struct sockaddr_in* addr);
 
-char* getName(const struct sockaddr_in* addr);
+void getName(const struct sockaddr_in* addr, char* name);
 
 #endif //C_P2P_CHAT_CLIENTS_H
