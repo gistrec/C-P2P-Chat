@@ -22,11 +22,12 @@
 
 // Пакет отправляется участнику для получения всех подключенных клиентов
 // В ответ приходит список всех подключенных клиентов
-// #define PACKET_GET_USERS '5'
+#define PACKET_REQUEST_USERS '5'
+#define PACKET_LIST_USERS '6'
 
 // Пакет отправляется всем участникам - содержит сообщение
 // В ответ нужно отправить PACKET_MESSAGE_ACCEPT
-#define PACKET_SEND_MESSAGE '6'
+#define PACKET_SEND_MESSAGE '7'
 
 // Пакет отправляется участнику в ответ на пакет PACKET_SEND_MESSAGE;
 // #define PACKET_MESSAGE_ACCEPT '5';
@@ -40,7 +41,8 @@ int createConnectRequestPacket(char* buf, const char* name);
 int createConnectAcceptPacket(char* buf, const char* name);
 int createMessagePacket(char* buf, int len_msg);
 //int createAcceptPacket(char* buf);
-//int createGetUsersPacket(char* buf);
+int createRequestUsersPacket(char* buf);
+int createListUsersPacket(char* buf);
 //int createTimeoutPacket(char* buf);
 
 #endif //C_P2P_CHAT_PACKET_H
