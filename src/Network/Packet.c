@@ -35,7 +35,7 @@ int createListUsersPacket(char* buf) {
     int pos = 2;
     // Для всех клиентов
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].isActive == 1) {
+        if (clients[i].isActive > 0) {
             buf[1]++;
             memcpy(buf + pos, &(clients->address), sizeof(struct sockaddr_in));
             pos += sizeof(struct sockaddr_in);
@@ -45,4 +45,14 @@ int createListUsersPacket(char* buf) {
         }
     }
     return pos;
+}
+
+int createTimeoutPacket(char* buf) {
+    buf[0] = PACKET_TIMEOUT;
+    return 1;
+}
+
+int createMessageAcceptPacket(char* buf) {
+    buf[0] = PACKET_MESSAGE_ACCEPT;
+    return 1;
 }

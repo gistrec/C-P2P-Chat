@@ -18,10 +18,9 @@ void addClient(const struct sockaddr_in* addr, const char* name) {
     }
 }
 
-
 struct Client* getClient(const struct sockaddr_in* addr) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].isActive > 0) {
+    if (clients[i].isActive > 0) {
             // Сравниваем ip
             if (isEquivalAddr(addr, &(clients[i].address))) {
                 return &(clients[i]);
@@ -31,28 +30,25 @@ struct Client* getClient(const struct sockaddr_in* addr) {
     return NULL;
 }
 
-
 int existClient(const struct sockaddr_in* addr) {
     return getClient(addr) != NULL;
 }
 
-void removeClient(const struct sockaddr_in* addr) {
-    struct Client* client = getClient(addr);
+void removeClient(struct Client* client) {
+    client->isActive = 0;
+}
 
-    if (client != NULL) {
-        client->isActive = 0;
-    }else {
-        escape("Удаление несуществующего клиента");
+void resetPingCount(struct Client* client) {
+    client->isActive = PING_SKIP_TO_TIMEOUT;
+}
+
+void decreasePingCount(struct Client* client) {
+    client->isActive--;
+    if (client->isActive < 0) {
+        // TODO: TIMEOUT
     }
 }
 
-
-void getName(const struct sockaddr_in* addr, char* name) {
-    struct Client* client = getClient(addr);
-
-    if (client != NULL) {
-        strcpy(name, (char *) &(client->name));
-    }else {
-        escape("Получение имени несуществующего клиента");
-    }
+void getName(const struct Client* client, char* name) {
+    strcpy(name, (char *) &(client->name));
 }

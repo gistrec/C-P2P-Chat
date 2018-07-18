@@ -18,7 +18,7 @@
 // Пакет отправляется участнику, если он долго не отвечал на запросы
 // При этом участник убирается из массива участников
 // Если пришел этот пакет - нужно заново отправить PACKET_CONNECT
-// #define PACKET_TIMEOUT '4'
+#define PACKET_TIMEOUT '4'
 
 // Пакет отправляется участнику для получения всех подключенных клиентов
 // В ответ приходит список всех подключенных клиентов
@@ -30,7 +30,7 @@
 #define PACKET_SEND_MESSAGE '7'
 
 // Пакет отправляется участнику в ответ на пакет PACKET_SEND_MESSAGE;
-// #define PACKET_MESSAGE_ACCEPT '5';
+#define PACKET_MESSAGE_ACCEPT '8'
 
 // Получаем id пакета
 int getPacketId(const char* data);

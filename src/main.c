@@ -29,6 +29,8 @@ int main(int argc, char *argv[]) {
     // Буффер для сообщений
     char buf_read[BUFLEN] = {0};
     char buf_send[BUFLEN] = {0};
+    // Буффер для имени
+    char buf_name[MAX_NAME_LENGTH] = {0};
 
     // Длина принятых/отправляемых данных
     int buf_read_size = 0;
@@ -66,15 +68,17 @@ int main(int argc, char *argv[]) {
         while ((buf_read_size = socket_read(sockfd, (char *) &buf_read, &buf_address, &address_size)) != -1) {
             // Не принимаем пакеты от себя же
             if (isEquivalAddr(&local_address, &buf_address)) continue;
+            int packet_id = getPacketId((char *) &buf_read);
+
+            struct Client* client = getClient(&buf_address);
+
+            // Если пришел пакет от неавторизованного клиента, и пакет не запрос на авторизацию
+            if (client == NULL && packet_id != PACKET_CONNECT_REQUES) continue;
+
             buf_read[buf_read_size] = '\0';
-            char buf_name[MAX_NAME_LENGTH];
             char* buf_ip = inet_ntoa(buf_address.sin_addr);
             int buf_port = ntohs(buf_address.sin_port);
-            // printf("Входящий пакет: %s\n", buf_read);
-            // printf("От %s:%d\n\n", buf_ip, buf_port);
 
-            int packet_id = getPacketId((char *) &buf_read);
-            // TODO: Добавить остальные пакеты
             switch (packet_id) {
                 case PACKET_CONNECT_REQUES:
                     if (existClient(&buf_address)) {
@@ -100,9 +104,13 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case PACKET_SEND_MESSAGE:
-                    getName(&buf_address, (char *) &buf_name);
+                    getName(client, (char *) &buf_name);
                     sprintf((char *) &buf_send, "%s: %s", buf_name, buf_read + 1);
                     addMessage(buf_send);
+                    decreasePingCount(client); // Уменьшаем кол-во
+                    break;
+                case PACKET_MESSAGE_ACCEPT:
+                    resetPingCount(client);
                     break;
                 case PACKET_REQUEST_USERS:
                     buf_send_size = createListUsersPacket((char *) &buf_send);
