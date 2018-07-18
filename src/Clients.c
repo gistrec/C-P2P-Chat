@@ -18,6 +18,7 @@ void addClient(const struct sockaddr_in* addr, const char* name) {
     }
 }
 
+
 struct Client* getClient(const struct sockaddr_in* addr) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive > 0) {
@@ -40,6 +41,8 @@ void removeClient(const struct sockaddr_in* addr) {
 
     if (client != NULL) {
         client->isActive = 0;
+    }else {
+        escape("Удаление несуществующего клиента");
     }
 }
 
@@ -50,6 +53,6 @@ void getName(const struct sockaddr_in* addr, char* name) {
     if (client != NULL) {
         strcpy(name, (char *) &(client->name));
     }else {
-        name[0] = '\0';
+        escape("Получение имени несуществующего клиента");
     }
 }
