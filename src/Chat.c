@@ -46,7 +46,7 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* nam
 
 void sendPacket(int sockfd, const char* buf, int buf_size) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].isActive == 1) {
+        if (clients[i].isActive > 0) {
             send_udp(sockfd, &(clients[i].address), buf, buf_size);
         }
     }

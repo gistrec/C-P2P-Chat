@@ -3,53 +3,53 @@
 
 // NOTICE: Из-за {} вызовется агрегатная инициализация,
 // которая для каждого элемента структуры вызовет zero-initialization
-struct client clients[MAX_CLIENTS] = {};
+struct Client clients[MAX_CLIENTS] = {0};
 
 
 void addClient(const struct sockaddr_in* addr, const char* name) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].isActive == 0) {
+        if (clients[i].isActive <= 0) {
             // Копируем адрес
-            memcpy(&(clients[i].address), addr, sizeof(*addr));
+            memcpy(&(clients[i].address), addr, sizeof(struct sockaddr_in));
             strcpy((char *) &(clients[i].name), name);
-            clients[i].isActive = 1;
+            clients[i].isActive = PING_SKIP_TO_TIMEOUT;
             return;
         }
     }
 }
 
-int existClient(const struct sockaddr_in* addr) {
+struct Client* getClient(const struct sockaddr_in* addr) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].isActive == 1) {
+        if (clients[i].isActive > 0) {
             // Сравниваем ip
             if (isEquivalAddr(addr, &(clients[i].address))) {
-                return 1;
+                return &(clients[i]);
             }
         }
     }
-    return 0;
+    return NULL;
+}
+
+
+int existClient(const struct sockaddr_in* addr) {
+    return getClient(addr) != NULL;
 }
 
 void removeClient(const struct sockaddr_in* addr) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].isActive == 1) {
-            // Сравниваем ip
-            if (isEquivalAddr(addr, &(clients[i].address))) {
-                clients[i].isActive = 0;
-                return;
-            }
-        }
+    struct Client* client = getClient(addr);
+
+    if (client != NULL) {
+        client->isActive = 0;
     }
 }
 
 
 void getName(const struct sockaddr_in* addr, char* name) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].isActive == 1) {
-            // Сравниваем ip
-            if (isEquivalAddr(addr, &(clients[i].address))) {
-                strcpy(name, clients[i].name);
-            }
-        }
+    struct Client* client = getClient(addr);
+
+    if (client != NULL) {
+        strcpy(name, (char *) &(client->name));
+    }else {
+        name[0] = '\0';
     }
 }

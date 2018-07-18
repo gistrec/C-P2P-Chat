@@ -3,12 +3,12 @@
 
 #include "Chat.h"
 
-struct client {
+struct Client {
     int isActive;
     char name[MAX_NAME_LENGTH];
     struct sockaddr_in address;
 };
-extern struct client clients[MAX_CLIENTS];
+extern struct Client clients[MAX_CLIENTS];
 
 
 /// Функция нужна для добавления клиента в массив клиентов

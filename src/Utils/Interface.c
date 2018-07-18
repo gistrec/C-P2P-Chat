@@ -44,7 +44,7 @@ void updateClientBox() {
     mvwprintw(box_client, 2, 0, "├─────────────┤");
     int position = 3;
     for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].isActive == 1) {
+        if (clients[i].isActive > 0) {
             mvwprintw(box_client, position, 1, clients[i].name);
             position++;
         }
