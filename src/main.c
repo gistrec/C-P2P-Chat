@@ -67,23 +67,34 @@ int main(int argc, char *argv[]) {
         // Получаем все данные из сокета
         while ((buf_read_size = socket_read(sockfd, (char *) &buf_read, &buf_address, &address_size)) != -1) {
             // Не принимаем пакеты от себя же
-            if (isEquivalAddr(&local_address, &buf_address)) continue;
+            if (isEquivalAddr(&local_address, &buf_address)) {
+                continue;
+            }
             int packet_id = getPacketId((char *) &buf_read);
 
             struct Client* client = getClient(&buf_address);
 
             // Если пришел пакет от неавторизованного клиента, и пакет не запрос на авторизацию
-            if (client == NULL && packet_id != PACKET_CONNECT_REQUES) continue;
+            if (client == NULL && packet_id != PACKET_CONNECT_REQUES && packet_id != PACKET_CONNECT_ACCEPT) {
+                continue;
+            }
+
+            // Обновляем данные для таймаута
+            if (client != NULL) {
+                resetPingCount(client);
+
+                if (packet_id != PACKET_PING) {
+                    createSimplePacket(PACKET_PING, (char *) &buf_send);
+                    send_udp(sockfd, &buf_address, (char *) &buf_send, 1);
+                }
+            }
 
             buf_read[buf_read_size] = '\0';
             char* buf_ip = inet_ntoa(buf_address.sin_addr);
             int buf_port = ntohs(buf_address.sin_port);
-
             switch (packet_id) {
                 case PACKET_CONNECT_REQUES:
-                    if (existClient(&buf_address)) {
-                        //printf("Получили пакет на подключение от подключенного клиента!\n");
-                    }else {
+                    if (!existClient(&buf_address)) {
                         strcpy((char *) &buf_name, buf_read + 1);
                         addClient(&buf_address, (char *) &buf_name);
                         updateClientBox();
@@ -107,10 +118,6 @@ int main(int argc, char *argv[]) {
                     getName(client, (char *) &buf_name);
                     sprintf((char *) &buf_send, "%s: %s", buf_name, buf_read + 1);
                     addMessage(buf_send);
-                    decreasePingCount(client); // Уменьшаем кол-во
-                    break;
-                case PACKET_MESSAGE_ACCEPT:
-                    resetPingCount(client);
                     break;
                 case PACKET_REQUEST_USERS:
                     buf_send_size = createListUsersPacket((char *) &buf_send);

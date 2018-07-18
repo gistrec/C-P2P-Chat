@@ -4,12 +4,16 @@ int getPacketId(const char* buf) {
     return buf[0];
 }
 
+int createSimplePacket(char type, char* buf) {
+    buf[0] = type;
+    return 1;
+}
+
 int createConnectRequestPacket(char* buf, const char* name) {
     buf[0] = PACKET_CONNECT_REQUES;
     strcpy(buf + 1, name);
     return 1 + (int) strlen(name);
 }
-
 
 int createConnectAcceptPacket(char* buf, const char* name) {
     buf[0] = PACKET_CONNECT_ACCEPT;
@@ -23,11 +27,6 @@ int createMessagePacket(char* buf_send, char* buf_input, int len_msg) {
     return 1 + len_msg;
 }
 
-int createRequestUsersPacket(char* buf) {
-    buf[0] = PACKET_REQUEST_USERS;
-    return 1;
-}
-
 int createListUsersPacket(char* buf) {
     buf[0] = PACKET_LIST_USERS;
     buf[1] = 0; // Кол-во клиентов
@@ -39,20 +38,7 @@ int createListUsersPacket(char* buf) {
             buf[1]++;
             memcpy(buf + pos, &(clients->address), sizeof(struct sockaddr_in));
             pos += sizeof(struct sockaddr_in);
-            /*for (int j = 0; j < sizeof(struct sockaddr_in); j++) {
-                buf[pos++] = ((char*) &clients->address)[j];
-            }*/
         }
     }
     return pos;
-}
-
-int createTimeoutPacket(char* buf) {
-    buf[0] = PACKET_TIMEOUT;
-    return 1;
-}
-
-int createMessageAcceptPacket(char* buf) {
-    buf[0] = PACKET_MESSAGE_ACCEPT;
-    return 1;
 }
