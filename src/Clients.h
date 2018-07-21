@@ -22,10 +22,13 @@ int existClient(const struct sockaddr_in* addr);
 
 /// Обновление активности
 void resetPingCount(struct Client* client);
-void decreasePingCount(struct Client* client);
+// Возвращаем кол-во тиков, оставшиеся до таймаута клиента
+int decreasePingCount(struct Client* client);
 
 /// Функция нужна для удаления клиента из массива клиентов
 void removeClient(struct Client* client);
+
+void timeoutClient(struct Client* client);
 
 void getName(const struct Client* client, char* name);
 

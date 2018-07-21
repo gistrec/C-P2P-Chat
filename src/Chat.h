@@ -17,7 +17,6 @@
 #include "Network/Socket.h"
 #include "Utils/Interface.h"
 
-
 /// Функция завершает выполнение программы
 /// Выведя при этом строку error
 void escape(const char* error);

@@ -36,17 +36,23 @@ int existClient(const struct sockaddr_in* addr) {
 
 void removeClient(struct Client* client) {
     client->isActive = 0;
+    updateClientBox();
 }
 
 void resetPingCount(struct Client* client) {
     client->isActive = PING_SKIP_TO_TIMEOUT;
 }
 
-void decreasePingCount(struct Client* client) {
+int decreasePingCount(struct Client* client) {
     client->isActive--;
-    if (client->isActive <= 0) {
-        // TODO: TIMEOUT
-    }
+    return client->isActive;
+}
+
+void timeoutClient(struct Client* client) {
+    char buf[5];
+    createSimplePacket(PACKET_TIMEOUT, (char *) &buf);
+    // Отправить пакет клиенту
+    removeClient(client);
 }
 
 void getName(const struct Client* client, char* name) {
