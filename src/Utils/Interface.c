@@ -108,8 +108,7 @@ void interface_init() {
     keypad(box_input, TRUE);
     echo();
     cbreak();      // disable line-buffering
-    timeout(100);  // wait 100 milliseconds for input
-
+    wtimeout(box_input, 1000 / TICK_PER_SECOND);  // wait 100 milliseconds for input
 }
 
 int readInput(char* buf, int* size) {

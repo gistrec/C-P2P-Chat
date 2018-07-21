@@ -15,10 +15,12 @@
 // Все убирают участника из массива участников
 // #define PACKET_DISCONNECT '2'
 
+#define PACKET_PING '3'
+
 // Пакет отправляется участнику, если он долго не отвечал на запросы
 // При этом участник убирается из массива участников
 // Если пришел этот пакет - нужно заново отправить PACKET_CONNECT
-// #define PACKET_TIMEOUT '4'
+#define PACKET_TIMEOUT '4'
 
 // Пакет отправляется участнику для получения всех подключенных клиентов
 // В ответ приходит список всех подключенных клиентов
@@ -26,23 +28,23 @@
 #define PACKET_LIST_USERS '6'
 
 // Пакет отправляется всем участникам - содержит сообщение
-// В ответ нужно отправить PACKET_MESSAGE_ACCEPT
 #define PACKET_SEND_MESSAGE '7'
 
-// Пакет отправляется участнику в ответ на пакет PACKET_SEND_MESSAGE;
-// #define PACKET_MESSAGE_ACCEPT '5';
-
-// Получаем id пакета
+/// Получаем id пакета
 int getPacketId(const char* data);
 
-// Записываем в буффер пакет
-// Возвращаем кол-во записанных байт
+/// Записываем в буффер пакет
+/// Возвращаем кол-во записанных байт
+
+// Функция для простых однобайтовых пакетов
+int createSimplePacket(char type, char* buf);
+
 int createConnectRequestPacket(char* buf, const char* name);
 int createConnectAcceptPacket(char* buf, const char* name);
+
 int createMessagePacket(char* buf_send, char* buf_input, int len_msg);
-//int createAcceptPacket(char* buf);
-int createRequestUsersPacket(char* buf);
+
 int createListUsersPacket(char* buf);
-//int createTimeoutPacket(char* buf);
+
 
 #endif //C_P2P_CHAT_PACKET_H

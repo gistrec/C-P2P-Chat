@@ -13,11 +13,11 @@ void addClient(const struct sockaddr_in* addr, const char* name) {
             memcpy(&(clients[i].address), addr, sizeof(struct sockaddr_in));
             strcpy((char *) &(clients[i].name), name);
             clients[i].isActive = PING_SKIP_TO_TIMEOUT;
+            updateClientBox();
             return;
         }
     }
 }
-
 
 struct Client* getClient(const struct sockaddr_in* addr) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -31,28 +31,15 @@ struct Client* getClient(const struct sockaddr_in* addr) {
     return NULL;
 }
 
-
 int existClient(const struct sockaddr_in* addr) {
     return getClient(addr) != NULL;
 }
 
-void removeClient(const struct sockaddr_in* addr) {
-    struct Client* client = getClient(addr);
-
-    if (client != NULL) {
-        client->isActive = 0;
-    }else {
-        escape("Удаление несуществующего клиента");
-    }
+void removeClient(struct Client* client) {
+    client->isActive = 0;
+    updateClientBox();
 }
 
-
-void getName(const struct sockaddr_in* addr, char* name) {
-    struct Client* client = getClient(addr);
-
-    if (client != NULL) {
-        strcpy(name, (char *) &(client->name));
-    }else {
-        escape("Получение имени несуществующего клиента");
-    }
+void getName(const struct Client* client, char* name) {
+    strcpy(name, (char *) &(client->name));
 }

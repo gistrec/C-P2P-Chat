@@ -35,7 +35,7 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* nam
                 addMessage((char *) &buf);
 
                 // Отправляем запрос на получение клиентов
-                buf_size = createRequestUsersPacket((char *) &buf);
+                buf_size = createSimplePacket(PACKET_REQUEST_USERS, (char *) &buf);
                 send_udp(sockfd, addr, buf, buf_size);
                 return;
             }
