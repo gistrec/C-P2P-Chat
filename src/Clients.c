@@ -13,6 +13,7 @@ void addClient(const struct sockaddr_in* addr, const char* name) {
             memcpy(&(clients[i].address), addr, sizeof(struct sockaddr_in));
             strcpy((char *) &(clients[i].name), name);
             clients[i].isActive = PING_SKIP_TO_TIMEOUT;
+            updateClientBox();
             return;
         }
     }
@@ -37,22 +38,6 @@ int existClient(const struct sockaddr_in* addr) {
 void removeClient(struct Client* client) {
     client->isActive = 0;
     updateClientBox();
-}
-
-void resetPingCount(struct Client* client) {
-    client->isActive = PING_SKIP_TO_TIMEOUT;
-}
-
-int decreasePingCount(struct Client* client) {
-    client->isActive--;
-    return client->isActive;
-}
-
-void timeoutClient(struct Client* client) {
-    char buf[5];
-    createSimplePacket(PACKET_TIMEOUT, (char *) &buf);
-    // Отправить пакет клиенту
-    removeClient(client);
 }
 
 void getName(const struct Client* client, char* name) {

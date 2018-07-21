@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
     }else {
         addMessage("Ждем подключения");
     }
+    int timeToSendPing = SEND_PING_PAUSE;
     while (1) {
         // Зачем-то нужно передавать длину адреса. Вообще для определения IPv4/6
         unsigned int address_size = sizeof(local_address);
@@ -81,8 +82,6 @@ int main(int argc, char *argv[]) {
 
             // Обновляем данные для таймаута
             if (client != NULL) {
-                resetPingCount(client);
-
                 if (packet_id != PACKET_PING) {
                     createSimplePacket(PACKET_PING, (char *) &buf_send);
                     send_udp(sockfd, &buf_address, (char *) &buf_send, 1);
@@ -113,6 +112,12 @@ int main(int argc, char *argv[]) {
                         sprintf((char *) &buf_send, "Подключились к %s", buf_name);
                         addMessage((char *) &buf_send);
                     }
+                    break;
+                case PACKET_PING:
+                    client->isActive = PING_SKIP_TO_TIMEOUT;
+                    break;
+                case PACKET_TIMEOUT:
+                    connectToClient(sockfd, &buf_address, (char *) &name);
                     break;
                 case PACKET_SEND_MESSAGE:
                     getName(client, (char *) &buf_name);
@@ -147,6 +152,28 @@ int main(int argc, char *argv[]) {
             memset(buf_input, 0, 100);
             size_input = 0;
         }
+        // Проверяем активность клиентов
+        if (timeToSendPing-- <= 0) {
+            // Уменьшаем всем активным клиентам 'active'
+            for (int i = 0; i < 20; i++) {
+                // Если клиент долго не присылал PACKET_PING
+                if (clients[i].isActive == 1) {
+                    // Счиатем его отключившимся
+                    createSimplePacket(PACKET_TIMEOUT, (char *) &buf_send);
+                    sendPacket(sockfd, (char *) &buf_send, 1);
+                    removeClient(&clients[i]);
+                    sprintf((char *) &buf_send, "Клиент %s отключен. Timeout.", clients[i].name);
+                    addMessage((char *) &buf_send);
+                }else if(clients[i].isActive > 1) {
+                    // Отправляем пакет PING
+                    clients[i].isActive--;
+                    createSimplePacket(PACKET_PING, (char *) &buf_send);
+                    sendPacket(sockfd, (char *) &buf_send, 1);
+                }
+            }
+            timeToSendPing = SEND_PING_PAUSE;
+        }
+
     }
     close_socket(sockfd);
     interface_close();

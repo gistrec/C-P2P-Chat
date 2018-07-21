@@ -47,12 +47,7 @@ void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* nam
 void sendPacket(int sockfd, const char* buf, int buf_size) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive > 0) {
-            // Если клиент еще активен
-            if (decreasePingCount(&(clients[i]))) {
-                send_udp(sockfd, &(clients[i].address), buf, buf_size);
-            }else {
-                timeoutClient(&clients[i]);
-            }
+            send_udp(sockfd, &(clients[i].address), buf, buf_size);
         }
     }
 }
