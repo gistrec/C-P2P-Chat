@@ -12,28 +12,25 @@
 
 ___
 
-### Дополнительно использовались
+### Зависимости
 * [ncurses] - библиотека предназначенная для управления вводом-выводом на терминал
 * [cmake] - кроссплатформенная система автоматизации сборки  
 
 ___
 
-### Загрузка
+### Сборка
+* [Установка ncurses]
+* [Установка CMake v3.9]  
 Используйте команду [git clone](https://git-scm.com/docs/git-clone) чтобы скачать этот проект.
 ```
 git clone --depth=1 https://github.com/gistrec/C-P2P-Chat.git Test-chat
 cd Test-chat
 ```
 
-### Сборка с помощью CMake и GNU Make
-Создайте папку для сборки в каталоге проекта и настройте сборку Makefile с помощью CMake:
+Соберите проект с помощью CMake:
 ```
-mkdir build && cd build
-cmake -D CMAKE_BUILD_TYPE=Release ..
-```
-Затем создайте исполняемый файл с помощью Makefile GNU 
-```
-make chat
+cmake . 
+cmake --build . -- -j 2
 ```
 
 ### Запуск
@@ -48,7 +45,7 @@ make chat
 **Флаг -name является обязательным!**
 Пример запуска чата:
 ```
-./chat -name Сашка -connect 46.180.227.50 8888 -port 8080
+./С_P2P_Chat -name Сашка -connect 46.180.227.50 8888 -port 8080
 ```
 
 ___
@@ -57,6 +54,8 @@ ___
  - Добавить команды
  - Добавить поддержку разных цветов
 
-
-   [ncurses]: <https://www.gnu.org/software/ncurses/>
-   [cmake]: <https://cmake.org/>
+[docs]: <https://github.com/gistrec/C-P2P-Chat/tree/master/docs>
+[ncurses]: <https://www.gnu.org/software/ncurses/>
+[cmake]: <https://cmake.org/>
+[Установка ncurses]: <https://github.com/gistrec/C-P2P-Chat/blob/master/docs/ncurses.md>
+[Установка CMake v3.9]: <https://github.com/gistrec/C-P2P-Chat/blob/master/docs/cmake.md>
