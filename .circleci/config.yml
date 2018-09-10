@@ -1,25 +1,26 @@
 version: 2
 jobs:
-	build:
-  	working_directory: ~/project
-		docker:
-			- image: rikorose/gcc-cmake:latest
-		steps:
-			- checkout
-			- run: apt-get update
-			- run: apt-get install -y libncurses5-dev libncursesw5-dev
-			- run:
-					name: init cmake
-					command: cmake .
-			- run:
-					name: build application
-					command: cmake --build . -- -j 2
+  build:
+    working_directory: ~/project
+    docker:
+      - image: rikorose/gcc-cmake:latest
+    steps:
+      - checkout
+      - run: apt-get update
+      - run: apt-get install -y libncurses5-dev libncursesw5-dev
+      - run:
+          name: init cmake
+          command: cmake .
+      - run:
+          name: build application
+          command: cmake --build . -- -j 2
 workflows:
-	version: 2
-	build:
-		jobs:
-			- build:
-					filters:
-						branches:
-							only:
-								- master
+  version: 2
+  build:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+                - circleci
