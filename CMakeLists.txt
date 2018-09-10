@@ -6,6 +6,7 @@ set(CMAKE_C_STANDARD 11)
 # Подключаем ncursesw
 set(CURSES_NEED_NCURSES TRUE)
 set(CURSES_NEED_WIDE TRUE)
+find_package(Curses)
 include(FindCurses)
 
 set(SOURCE_FILES
