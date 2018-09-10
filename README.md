@@ -1,4 +1,7 @@
 # Чат на си
+
+[![CircleCI](https://img.shields.io/circleci/project/github/gistrec/C-P2P-Chat.svg?style=for-the-badge)](https://circleci.com/gh/gistrec/C-P2P-Chat)
+
 Децентрализованный P2P чат с использованием UDP пакетов и неблокирующего ввода/вывода!
 
 Основной функционал:
