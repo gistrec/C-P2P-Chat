@@ -2,6 +2,26 @@
 
 #include <getopt.h>
 
+void utf8_copy(char* dst, size_t dst_size, const char* src) {
+    if (dst_size == 0) return;
+    size_t i = 0;
+    while (src[i] != '\0' && i + 1 < dst_size) {
+        unsigned char c = (unsigned char) src[i];
+        // Длина текущего UTF-8 символа по старшим битам ведущего байта
+        size_t char_len = 1;
+        if      ((c & 0x80) == 0x00) char_len = 1;
+        else if ((c & 0xE0) == 0xC0) char_len = 2;
+        else if ((c & 0xF0) == 0xE0) char_len = 3;
+        else if ((c & 0xF8) == 0xF0) char_len = 4;
+        // Не помещается целиком — обрываем здесь
+        if (i + char_len >= dst_size) break;
+        for (size_t k = 0; k < char_len && src[i] != '\0'; k++, i++) {
+            dst[i] = src[i];
+        }
+    }
+    dst[i] = '\0';
+}
+
 static void printUsage(const char* prog) {
     printf(
         "Usage: %s --name <nick> [options]\n"
@@ -49,8 +69,7 @@ void parseArgs(int argc, char *argv[], struct CliOptions* opts) {
     while ((opt = getopt_long(argc, argv, "n:l:r:p:h", long_opts, NULL)) != -1) {
         switch (opt) {
             case 'n':
-                strncpy(opts->name, optarg, MAX_NAME_LENGTH - 1);
-                opts->name[MAX_NAME_LENGTH - 1] = '\0';
+                utf8_copy(opts->name, MAX_NAME_LENGTH, optarg);
                 break;
             case 'l':
                 opts->local_port = parsePort(optarg, "--local-port");

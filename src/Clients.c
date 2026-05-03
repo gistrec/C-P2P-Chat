@@ -1,4 +1,5 @@
 #include "Clients.h"
+#include "Utils/Utils.h"
 
 
 // NOTICE: Из-за {} вызовется агрегатная инициализация,
@@ -11,8 +12,7 @@ void addClient(const struct sockaddr_in* addr, const char* name) {
         if (clients[i].isActive <= 0) {
             // Копируем адрес
             memcpy(&(clients[i].address), addr, sizeof(struct sockaddr_in));
-            strncpy(clients[i].name, name, MAX_NAME_LENGTH - 1);
-            clients[i].name[MAX_NAME_LENGTH - 1] = '\0';
+            utf8_copy(clients[i].name, MAX_NAME_LENGTH, name);
             clients[i].isActive = PING_SKIP_TO_TIMEOUT;
             updateClientBox();
             return;

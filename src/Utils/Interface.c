@@ -1,4 +1,21 @@
 #include "Interface.h"
+#include "Utils.h"
+
+#include <langinfo.h>
+
+// ncursesw корректно рисует кириллицу и псевдографику только в UTF-8 локали.
+// Если системная локаль (LANG/LC_ALL) не UTF-8 — пробуем стандартные fallback'и.
+static void ensureUtf8Locale(void) {
+    setlocale(LC_ALL, "");
+    if (strcmp(nl_langinfo(CODESET), "UTF-8") == 0) return;
+
+    const char* candidates[] = {
+        "C.UTF-8", "en_US.UTF-8", "ru_RU.UTF-8", "en_GB.UTF-8", NULL
+    };
+    for (int i = 0; candidates[i] != NULL; i++) {
+        if (setlocale(LC_ALL, candidates[i]) != NULL) return;
+    }
+}
 
 static WINDOW* box_info = NULL;
 static WINDOW* box_client = NULL;
@@ -68,8 +85,7 @@ void addMessage(const char* msg) {
     for (int i = 1; i < 16; i++) {
         memcpy(messages[i - 1], messages[i], sizeof(messages[0]));
     }
-    strncpy(messages[15], msg, sizeof(messages[15]) - 1);
-    messages[15][sizeof(messages[15]) - 1] = '\0';
+    utf8_copy(messages[15], sizeof(messages[15]), msg);
     updateMessageBox();
 }
 
@@ -92,9 +108,10 @@ void updateInfoBox(const char* name, const char* ip, int port) {
 }
 
 void interface_init() {
-    setlocale(LC_ALL,"");
+    ensureUtf8Locale();
     // Изменяем размер экрана
     printf("\e[8;25;80;t");
+    fflush(stdout);
 
     initscr();
 
