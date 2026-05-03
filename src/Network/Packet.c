@@ -1,5 +1,9 @@
 #include "Packet.h"
 
+#include <string.h>
+
+#include "../Clients.h"
+
 int getPacketId(const char* buf) {
     return buf[0];
 }

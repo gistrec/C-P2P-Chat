@@ -1,6 +1,9 @@
 #include "Utils.h"
 
 #include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 void utf8_copy(char* dst, size_t dst_size, const char* src) {
     if (dst_size == 0) return;

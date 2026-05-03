@@ -36,3 +36,22 @@ add_executable(C_P2P_Chat ${SOURCE_FILES})
 target_include_directories(C_P2P_Chat PRIVATE ${CURSES_INCLUDE_DIRS})
 target_link_libraries(C_P2P_Chat ${CURSES_LIBRARIES})
 target_compile_options(C_P2P_Chat PRIVATE -Wall -Wextra)
+
+# ── Tests ─────────────────────────────────────────────────────────────
+enable_testing()
+
+add_executable(test_utf8_copy
+        tests/test_utf8_copy.c
+        src/Utils/Utils.c)
+target_compile_options(test_utf8_copy PRIVATE -Wall -Wextra)
+
+add_executable(test_packet
+        tests/test_packet.c
+        src/Network/Packet.c
+        src/Clients.c
+        src/Network/Socket.c
+        src/Utils/Utils.c)
+target_compile_options(test_packet PRIVATE -Wall -Wextra)
+
+add_test(NAME utf8_copy COMMAND test_utf8_copy)
+add_test(NAME packet    COMMAND test_packet)

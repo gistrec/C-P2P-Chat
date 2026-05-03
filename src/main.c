@@ -1,7 +1,16 @@
 #include "Chat.h"
-#include "Utils/Utils.h"
 
+#include <arpa/inet.h>
 #include <signal.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "Clients.h"
+#include "Config.h"
+#include "Network/Packet.h"
+#include "Network/Socket.h"
+#include "Utils/Interface.h"
+#include "Utils/Utils.h"
 
 static volatile sig_atomic_t shutdown_requested = 0;
 

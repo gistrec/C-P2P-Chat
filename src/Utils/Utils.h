@@ -1,7 +1,9 @@
 #ifndef C_P2P_CHAT_UTILS_H
 #define C_P2P_CHAT_UTILS_H
 
-#include "../Chat.h"
+#include <stddef.h>
+
+#include "../Config.h"
 
 struct CliOptions {
     char  name[MAX_NAME_LENGTH];

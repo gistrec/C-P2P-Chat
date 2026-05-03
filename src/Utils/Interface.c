@@ -1,8 +1,15 @@
 #include "Interface.h"
-#include "Utils.h"
 
 #include <langinfo.h>
+#include <locale.h>
+#include <ncursesw/curses.h>
+#include <stdio.h>
+#include <string.h>
 #include <time.h>
+
+#include "../Clients.h"
+#include "../Config.h"
+#include "Utils.h"
 
 // ncursesw корректно рисует кириллицу и псевдографику только в UTF-8 локали.
 // Если системная локаль (LANG/LC_ALL) не UTF-8 — пробуем стандартные fallback'и.
@@ -18,19 +25,16 @@ static void ensureUtf8Locale(void) {
     }
 }
 
-#define MSG_HISTORY 16
-#define MSG_TEXT_LEN 126
-
 static WINDOW* box_info = NULL;
 static WINDOW* box_client = NULL;
 static WINDOW* box_messages = NULL;
 static WINDOW* box_input = NULL;
 
 struct StoredMessage {
-    char text[MSG_TEXT_LEN];
+    char text[UI_MSG_TEXT_LEN];
     int  type;
 };
-static struct StoredMessage messages[MSG_HISTORY] = {{{0}, 0}};
+static struct StoredMessage messages[UI_MSG_HISTORY] = {{{0}, 0}};
 
 // Цветовые пары
 #define CP_SYSTEM 1
@@ -64,13 +68,13 @@ static int colorPairFor(int type) {
 }
 
 static void initInfoBox() {
-    box_info = newwin(5, 65, 0, 0);
+    box_info = newwin(UI_INFO_HEIGHT, UI_CHAT_WIDTH, 0, 0);
     box(box_info, 0, 0);
     wrefresh(box_info);
 }
 
 static void initClientBox() {
-    box_client = newwin(25, 15, 0, 65);
+    box_client = newwin(UI_TERM_HEIGHT, UI_CLIENTS_WIDTH, 0, UI_CHAT_WIDTH);
     box(box_client, 0, 0);
     mvwprintw(box_client, 1, 1, "   Clients   ");
     mvwprintw(box_client, 2, 0, "├─────────────┤");
@@ -78,15 +82,15 @@ static void initClientBox() {
 }
 
 static void initMessageBox() {
-    box_messages = newwin(17, 65, 5, 0);
+    box_messages = newwin(UI_MSG_HEIGHT, UI_CHAT_WIDTH, UI_INFO_HEIGHT, 0);
     box(box_messages, 0, 0);
-    mvwprintw(box_messages, 16, 0, "│                                                               │");
+    mvwprintw(box_messages, UI_MSG_HEIGHT - 1, 0, "│                                                               │");
 
     wrefresh(box_messages);
 }
 
 static void initInputBox() {
-    box_input = newwin(3, 65, 22, 0);
+    box_input = newwin(UI_INPUT_HEIGHT, UI_CHAT_WIDTH, UI_INFO_HEIGHT + UI_MSG_HEIGHT, 0);
     box(box_input, 0, 0);
     mvwprintw(box_input, 0, 0, "├───────────────────────────────────────────────────────────────┤");
     wrefresh(box_input);
@@ -111,8 +115,8 @@ void updateClientBox() {
 static void updateMessageBox() {
     wclear(box_messages);
     box(box_messages, 0, 0);
-    mvwprintw(box_messages, 16, 0, "│                                                               │");
-    for (int i = 0; i < MSG_HISTORY; i++) {
+    mvwprintw(box_messages, UI_MSG_HEIGHT - 1, 0, "│                                                               │");
+    for (int i = 0; i < UI_MSG_HISTORY; i++) {
         if (messages[i].text[0] == '\0') continue;
         int cp = colorPairFor(messages[i].type);
         if (has_color) wattron(box_messages, COLOR_PAIR(cp));
@@ -127,14 +131,14 @@ void addMessage(const char* msg, int type) {
     time_t now = time(NULL);
     struct tm tm_buf;
     struct tm* tm = localtime_r(&now, &tm_buf);
-    char with_ts[MSG_TEXT_LEN];
+    char with_ts[UI_MSG_TEXT_LEN];
     snprintf(with_ts, sizeof(with_ts), "[%02d:%02d] %s", tm->tm_hour, tm->tm_min, msg);
 
-    for (int i = 1; i < MSG_HISTORY; i++) {
+    for (int i = 1; i < UI_MSG_HISTORY; i++) {
         memcpy(&messages[i - 1], &messages[i], sizeof(messages[0]));
     }
-    utf8_copy(messages[MSG_HISTORY - 1].text, sizeof(messages[0].text), with_ts);
-    messages[MSG_HISTORY - 1].type = type;
+    utf8_copy(messages[UI_MSG_HISTORY - 1].text, sizeof(messages[0].text), with_ts);
+    messages[UI_MSG_HISTORY - 1].type = type;
     updateMessageBox();
 }
 
@@ -162,8 +166,9 @@ void updateInfoBox(const char* name, const char* ip, int port) {
 
 void interface_init() {
     ensureUtf8Locale();
-    // Изменяем размер экрана
-    printf("\e[8;25;80;t");
+    // Просим терминал ресайзнуться под нашу раскладку (DECSLPP/DECSCPP).
+    // Многие терминалы это игнорируют — раскладка всё равно рассчитана на UI_TERM_*.
+    printf("\e[8;%d;%d;t", UI_TERM_HEIGHT, UI_TERM_WIDTH);
     fflush(stdout);
 
     initscr();

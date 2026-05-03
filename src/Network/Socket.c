@@ -1,5 +1,14 @@
 #include "Socket.h"
 
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#include "../Chat.h"     // escape()
+#include "../Config.h"   // BUFLEN
+
 int create_socket() {
     int sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (sockfd == -1) escape("Can't create socket");
@@ -42,6 +51,8 @@ int isEquivalAddr(const struct sockaddr_in* first, const struct sockaddr_in* sec
 
 void createAddress(const char* ip, int port, struct sockaddr_in* addr) {
     addr->sin_family = AF_INET;
-    addr->sin_addr.s_addr = inet_addr(ip);
+    if (inet_pton(AF_INET, ip, &addr->sin_addr) != 1) {
+        escape("Invalid IP address (use IPv4 dotted notation, e.g. 127.0.0.1)");
+    }
     addr->sin_port = htons(port);
 }

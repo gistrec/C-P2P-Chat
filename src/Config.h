@@ -13,6 +13,17 @@
 // Максимум попыток установить соединение
 #define CONNECT_MAX_RETRIES 10
 
+// Раскладка интерфейса (в строках/колонках терминала)
+#define UI_TERM_WIDTH    80
+#define UI_TERM_HEIGHT   25
+#define UI_CHAT_WIDTH    65       // ширина левой колонки (info + messages + input)
+#define UI_CLIENTS_WIDTH 15       // ширина правой колонки со списком клиентов
+#define UI_INFO_HEIGHT   5
+#define UI_MSG_HEIGHT    17
+#define UI_INPUT_HEIGHT  3
+#define UI_MSG_HISTORY   16       // сколько последних сообщений хранится
+#define UI_MSG_TEXT_LEN  126      // размер буфера для одного сообщения (с таймстемпом)
+
 
 #define BUFLEN 512     // Максимальный размер буффера
 #define MAX_CLIENTS 20 // Максимальное число клиентов

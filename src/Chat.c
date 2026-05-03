@@ -1,4 +1,14 @@
 #include "Chat.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <ncursesw/curses.h>     // endwin()
+
+#include "Clients.h"
+#include "Config.h"
+#include "Network/Packet.h"
+#include "Network/Socket.h"
+#include "Utils/Interface.h"
 #include "Utils/Utils.h"
 
 void escape(const char* error) {

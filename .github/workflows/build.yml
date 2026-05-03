@@ -24,6 +24,9 @@ jobs:
       - name: Build
         run: cmake --build build -- -j 2
 
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
   macos:
     name: Build on macOS
     runs-on: macos-latest
@@ -38,3 +41,6 @@ jobs:
 
       - name: Build
         run: cmake --build build -- -j 2
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

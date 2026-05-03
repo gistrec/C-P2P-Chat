@@ -1,5 +1,11 @@
 #include "Clients.h"
-#include "Utils/Utils.h"
+
+#include <stddef.h>
+#include <string.h>
+
+#include "Network/Socket.h"      // isEquivalAddr()
+#include "Utils/Interface.h"     // updateClientBox()
+#include "Utils/Utils.h"         // utf8_copy()
 
 
 // NOTICE: Из-за {} вызовется агрегатная инициализация,
