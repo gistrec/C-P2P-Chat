@@ -10,7 +10,8 @@ Features:
 - Connect to a single peer and the chat automatically discovers and joins the rest of the network.
 - Activity tracking — peers that stop answering pings are considered disconnected.
 - Pseudo-graphical Midnight Commander–style interface.
-- Per-user nicknames.
+- Per-user nicknames (up to 12 characters).
+- Messages limited to 60 characters.
 
 ![Screenshot](screenshot.png)
 

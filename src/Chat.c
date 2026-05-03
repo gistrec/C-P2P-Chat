@@ -1,47 +1,52 @@
 #include "Chat.h"
+#include "Utils/Utils.h"
 
 void escape(const char* error) {
-    printf("Error!!!\n");
-    printf("%s\n", error);
+    endwin();   // безопасный no-op, если ncurses ещё не инициализирован
+    fprintf(stderr, "Error: %s\n", error);
     exit(EXIT_FAILURE);
 }
 
-void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* name) {
-    // Буффер для сообщений
-    char buf[100];
-    // Длина принятых/отправляемых данных
-    int buf_size = 0;
+// Состояние pending connect: одна попытка одновременно — для P2P чата достаточно.
+static struct {
+    int active;
+    int retries_left;
+    int next_send_ticks;
+    struct sockaddr_in addr;
+} pending_connect = {0, 0, 0, {0}};
 
-    while (1) {
-        buf_size = createConnectRequestPacket((char *) &buf, name);
-        send_udp(sockfd, addr, buf, buf_size);
-        // addMessage("Запрос на подключение отправлен");
-        sleep(2);
+static void sendConnectRequest(int sockfd, const struct sockaddr_in* addr, const char* name) {
+    char buf[1 + MAX_NAME_LENGTH];
+    int n = createConnectRequestPacket(buf, name);
+    send_udp(sockfd, addr, buf, n);
+}
 
-        struct sockaddr_in buf_address = {0};
-        unsigned int address_size = sizeof(struct sockaddr_in); // Оказывается нужна инициализация!!!
-        // Получаем все данные из сокета
-        while ((buf_size = socket_read(sockfd, (char *) &buf, &buf_address, &address_size)) != -1) {
-            buf[buf_size] = '\0';
-            int packet_id = getPacketId((char *) &buf);
-            if (packet_id == PACKET_CONNECT_ACCEPT && isEquivalAddr(addr, &buf_address)) {
+void startConnect(int sockfd, const struct sockaddr_in* addr, const char* name) {
+    pending_connect.active = 1;
+    pending_connect.addr = *addr;
+    pending_connect.retries_left = CONNECT_MAX_RETRIES;
+    pending_connect.next_send_ticks = CONNECT_RETRY_TICKS;
+    sendConnectRequest(sockfd, addr, name);
+}
 
-                char buf_name[MAX_NAME_LENGTH * 2];
-                strcpy((char *) &buf_name, buf + 1);
-                addClient(&buf_address, (char *) &buf_name);
-                updateClientBox();
+void tickPendingConnect(int sockfd, const char* name) {
+    if (!pending_connect.active) return;
+    if (--pending_connect.next_send_ticks > 0) return;
 
-                sprintf((char *) &buf, "Подключились к %s", buf_name);
-                addMessage((char *) &buf);
-
-                // Отправляем запрос на получение клиентов
-                buf_size = createSimplePacket(PACKET_REQUEST_USERS, (char *) &buf);
-                send_udp(sockfd, addr, buf, buf_size);
-                return;
-            }
-        }
-        // addMessage("Нет ответа от клиента");
+    if (--pending_connect.retries_left <= 0) {
+        pending_connect.active = 0;
+        addMessage("Connect failed: no response from peer");
+        return;
     }
+    sendConnectRequest(sockfd, &pending_connect.addr, name);
+    pending_connect.next_send_ticks = CONNECT_RETRY_TICKS;
+}
+
+int matchPendingConnect(const struct sockaddr_in* addr) {
+    if (!pending_connect.active) return 0;
+    if (!isEquivalAddr(&pending_connect.addr, addr)) return 0;
+    pending_connect.active = 0;
+    return 1;
 }
 
 void sendPacket(int sockfd, const char* buf, int buf_size) {

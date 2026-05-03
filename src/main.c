@@ -1,6 +1,14 @@
 #include "Chat.h"
 #include "Utils/Utils.h"
 
+#include <signal.h>
+
+static volatile sig_atomic_t shutdown_requested = 0;
+
+static void onSignal(int sig) {
+    (void) sig;
+    shutdown_requested = 1;
+}
 
 int main(int argc, char *argv[]) {
     struct CliOptions opts;
@@ -11,7 +19,9 @@ int main(int argc, char *argv[]) {
     char* connect_ip   = opts.remote_host;
     int   connect_port = opts.remote_port;
 
-    fflush(stdin);
+    signal(SIGINT,  onSignal);
+    signal(SIGTERM, onSignal);
+
     interface_init();
 
     // Адрес локального сокета
@@ -44,19 +54,19 @@ int main(int argc, char *argv[]) {
     setNonblockFlag(sockfd);
     setNonblockFlag(0);
 
-    // Если задан ip - патыаеся подключиться
+    // Если задан ip - патыаеся подключиться (асинхронно)
     if (connect_ip != NULL) {
         createAddress(connect_ip, connect_port, &buf_address);
 
-        sprintf((char *) &buf_send, "Подключаемся к %s:%d", connect_ip, connect_port);
+        snprintf((char *) &buf_send, BUFLEN, "Connecting to %s:%d", connect_ip, connect_port);
         addMessage((char *) &buf_send);
 
-        connectToClient(sockfd, &buf_address, name);
+        startConnect(sockfd, &buf_address, name);
     }else {
-        addMessage("Ждем подключения");
+        addMessage("Waiting for connection");
     }
     int timeToSendPing = SEND_PING_PAUSE;
-    while (1) {
+    while (!shutdown_requested) {
         // Зачем-то нужно передавать длину адреса. Вообще для определения IPv4/6
         unsigned int address_size = sizeof(local_address);
         // Получаем все данные из сокета
@@ -87,35 +97,43 @@ int main(int argc, char *argv[]) {
             int buf_port = ntohs(buf_address.sin_port);
             switch (packet_id) {
                 case PACKET_CONNECT_REQUES:
+                    if (buf_read_size < 2) break;
                     if (!existClient(&buf_address)) {
-                        strcpy((char *) &buf_name, buf_read + 1);
-                        addClient(&buf_address, (char *) &buf_name);
+                        utf8_copy(buf_name, MAX_NAME_LENGTH, buf_read + 1);
+                        addClient(&buf_address, buf_name);
                         updateClientBox();
-                        sprintf((char *) &buf_send, "Подключился клиент %s [%s:%d]", buf_name, buf_ip, buf_port);
+                        snprintf((char *) &buf_send, BUFLEN, "Client %s connected [%s:%d]", buf_name, buf_ip, buf_port);
                         addMessage((char *) &buf_send);
                     }
                     buf_send_size = createConnectAcceptPacket((char *) &buf_send, name);
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     break;
                 case PACKET_CONNECT_ACCEPT:
+                    if (buf_read_size < 2) break;
                     if (!existClient(&buf_address)) {
-                        strcpy((char *) &buf_name, buf_read + 1);
-                        addClient(&buf_address, (char *) &buf_name);
+                        utf8_copy(buf_name, MAX_NAME_LENGTH, buf_read + 1);
+                        addClient(&buf_address, buf_name);
                         updateClientBox();
 
-                        sprintf((char *) &buf_send, "Подключились к %s", buf_name);
+                        snprintf((char *) &buf_send, BUFLEN, "Connected to %s", buf_name);
                         addMessage((char *) &buf_send);
+                    }
+                    if (matchPendingConnect(&buf_address)) {
+                        // Это ответ на наш исходящий connect — запросим список остальных пиров
+                        buf_send_size = createSimplePacket(PACKET_REQUEST_USERS, (char *) &buf_send);
+                        send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     }
                     break;
                 case PACKET_PING:
                     client->isActive = PING_SKIP_TO_TIMEOUT;
                     break;
                 case PACKET_TIMEOUT:
-                    connectToClient(sockfd, &buf_address, name);
+                    startConnect(sockfd, &buf_address, name);
                     break;
                 case PACKET_SEND_MESSAGE:
+                    if (buf_read_size < 2) break;
                     getName(client, (char *) &buf_name);
-                    sprintf((char *) &buf_send, "%s: %s", buf_name, buf_read + 1);
+                    snprintf((char *) &buf_send, BUFLEN, "%s: %s", buf_name, buf_read + 1);
                     addMessage(buf_send);
                     break;
                 case PACKET_REQUEST_USERS:
@@ -123,8 +141,11 @@ int main(int argc, char *argv[]) {
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     break;
                 case PACKET_LIST_USERS: {
-                    buf_send_size = createConnectRequestPacket((char *) &buf_send, name);
+                    if (buf_read_size < 2) break;
                     int count = (unsigned char) buf_read[1];
+                    int needed = 2 + count * (int) sizeof(struct sockaddr_in);
+                    if (needed > buf_read_size) break;  // битый пакет — игнорируем
+                    buf_send_size = createConnectRequestPacket((char *) &buf_send, name);
                     for (int i = 0; i < count; i++) {
                         memcpy(&buf_address,
                                buf_read + 2 + i * (int) sizeof(struct sockaddr_in),
@@ -137,17 +158,15 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        // TODO: NEED REFACTORING!!!!!!!!!!!!!!!!
         static int size_input = 0;
-        static char buf_input[100] = {0};
+        static char buf_input[MAX_MSG_BYTES] = {0};
         while (readInput((char *) buf_input, &size_input) == 1) {
-            sprintf((char *) &buf_send, "Вы: %s", buf_input);
+            sprintf((char *) &buf_send, "You: %s", buf_input);
 
             addMessage((char *) &buf_send);
-            // printf("Отправляем всем сообщение: %s\n", buf);
             createMessagePacket((char *) &buf_send, (char *) &buf_input, size_input);
             sendPacket(sockfd, (char *) &buf_send, size_input + 1);
-            memset(buf_input, 0, 100);
+            memset(buf_input, 0, MAX_MSG_BYTES);
             size_input = 0;
         }
         // Проверяем активность клиентов
@@ -159,7 +178,7 @@ int main(int argc, char *argv[]) {
                     // Счиатем его отключившимся
                     createSimplePacket(PACKET_TIMEOUT, (char *) &buf_send);
                     send_udp(sockfd, &(clients[i].address), (char *) &buf_send, 1);
-                    sprintf((char *) &buf_send, "Клиент %s отключен. Timeout.", clients[i].name);
+                    sprintf((char *) &buf_send, "Client %s timed out", clients[i].name);
                     addMessage((char *) &buf_send);
                     removeClient(&clients[i]);
                 }else if(clients[i].isActive > 1) {
@@ -172,6 +191,8 @@ int main(int argc, char *argv[]) {
             timeToSendPing = SEND_PING_PAUSE;
         }
 
+        // Повторяем pending connect, если есть
+        tickPendingConnect(sockfd, name);
     }
     close_socket(sockfd);
     interface_close();

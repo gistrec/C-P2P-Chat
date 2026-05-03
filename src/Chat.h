@@ -21,9 +21,18 @@
 /// Выведя при этом строку error
 void escape(const char* error);
 
-/// Функция нужна для подключения к клиенту
-/// Отправляет запрос на подключение, пока не получит ответ
-void connectToClient(int sockfd, const struct sockaddr_in* addr, const char* name);
+/// Инициирует неблокирующее подключение к удалённому узлу.
+/// Сразу шлёт PACKET_CONNECT_REQUES и помещает попытку в "pending" —
+/// дальше main loop через tickPendingConnect() будет повторять, если ответа нет.
+void startConnect(int sockfd, const struct sockaddr_in* addr, const char* name);
+
+/// Должна вызываться раз за итерацию main loop. Если есть pending connect
+/// и истёк интервал — повторяет запрос или отказывается после исчерпания попыток.
+void tickPendingConnect(int sockfd, const char* name);
+
+/// Если есть pending connect к этому адресу — снимает его и возвращает 1.
+/// Иначе 0. Вызывается из обработчика PACKET_CONNECT_ACCEPT.
+int  matchPendingConnect(const struct sockaddr_in* addr);
 
 /// Отправляем пакет всем клиентам
 void sendPacket(int sockfd, const char* buf, int buf_size);

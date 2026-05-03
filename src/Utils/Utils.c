@@ -27,13 +27,13 @@ static void printUsage(const char* prog) {
         "Usage: %s --name <nick> [options]\n"
         "\n"
         "Required:\n"
-        "  -n, --name <nick>           Никнейм (до %d символов)\n"
+        "  -n, --name <nick>           Nickname (up to %d characters)\n"
         "\n"
         "Optional:\n"
-        "  -l, --local-port <port>     Локальный порт (default: %d)\n"
-        "  -r, --remote-host <ip>      IP узла, к которому подключаемся\n"
-        "  -p, --remote-port <port>    Порт узла (default: %d)\n"
-        "  -h, --help                  Показать эту справку\n"
+        "  -l, --local-port <port>     Local port (default: %d)\n"
+        "  -r, --remote-host <ip>      Peer IP to connect to\n"
+        "  -p, --remote-port <port>    Peer port (default: %d)\n"
+        "  -h, --help                  Show this help and exit\n"
         "\n"
         "Example:\n"
         "  %s --name Alice --remote-host 46.180.227.50 --remote-port 8888 --local-port 8080\n",
@@ -44,7 +44,7 @@ static int parsePort(const char* s, const char* flag) {
     char* end = NULL;
     long v = strtol(s, &end, 10);
     if (end == s || *end != '\0' || v <= 0 || v > 65535) {
-        fprintf(stderr, "Неправильно указан порт для %s: %s\n", flag, s);
+        fprintf(stderr, "Invalid port for %s: %s\n", flag, s);
         exit(EXIT_FAILURE);
     }
     return (int) v;
@@ -90,7 +90,7 @@ void parseArgs(int argc, char *argv[], struct CliOptions* opts) {
     }
 
     if (opts->name[0] == '\0') {
-        fprintf(stderr, "Необходимо указать никнейм: --name <nick>\n\n");
+        fprintf(stderr, "Nickname is required: --name <nick>\n\n");
         printUsage(argv[0]);
         exit(EXIT_FAILURE);
     }
