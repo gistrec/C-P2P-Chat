@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     char* connect_ip = NULL;
     char name[MAX_NAME_LENGTH] = "";
 
-    parseConnectAddress(argc, argv, &connect_ip, &source_port);
+    parseConnectAddress(argc, argv, &connect_ip, &connect_port);
     parseSourcePort(argc, argv, &source_port);
     parseName(argc, argv, (char *) &name);
 
@@ -128,15 +128,19 @@ int main(int argc, char *argv[]) {
                     buf_send_size = createListUsersPacket((char *) &buf_send);
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     break;
-                case PACKET_LIST_USERS:
+                case PACKET_LIST_USERS: {
                     buf_send_size = createConnectRequestPacket((char *) &buf_send, (char *) &name);
-                    // Загружаем клиентов
-                    int count =  buf_read[1];
+                    int count = (unsigned char) buf_read[1];
                     for (int i = 0; i < count; i++) {
-                        memcpy(&(buf_address), buf_read + 2, sizeof(struct sockaddr_in));
+                        memcpy(&buf_address,
+                               buf_read + 2 + i * (int) sizeof(struct sockaddr_in),
+                               sizeof(struct sockaddr_in));
+                        if (isEquivalAddr(&local_address, &buf_address)) continue;
+                        if (existClient(&buf_address)) continue;
                         send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     }
                     break;
+                }
             }
         }
         // TODO: NEED REFACTORING!!!!!!!!!!!!!!!!
@@ -155,20 +159,20 @@ int main(int argc, char *argv[]) {
         // Проверяем активность клиентов
         if (timeToSendPing-- <= 0) {
             // Уменьшаем всем активным клиентам 'active'
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < MAX_CLIENTS; i++) {
                 // Если клиент долго не присылал PACKET_PING
                 if (clients[i].isActive == 1) {
                     // Счиатем его отключившимся
                     createSimplePacket(PACKET_TIMEOUT, (char *) &buf_send);
-                    sendPacket(sockfd, (char *) &buf_send, 1);
-                    removeClient(&clients[i]);
+                    send_udp(sockfd, &(clients[i].address), (char *) &buf_send, 1);
                     sprintf((char *) &buf_send, "Клиент %s отключен. Timeout.", clients[i].name);
                     addMessage((char *) &buf_send);
+                    removeClient(&clients[i]);
                 }else if(clients[i].isActive > 1) {
                     // Отправляем пакет PING
                     clients[i].isActive--;
                     createSimplePacket(PACKET_PING, (char *) &buf_send);
-                    sendPacket(sockfd, (char *) &buf_send, 1);
+                    send_udp(sockfd, &(clients[i].address), (char *) &buf_send, 1);
                 }
             }
             timeToSendPing = SEND_PING_PAUSE;

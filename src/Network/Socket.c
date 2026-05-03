@@ -14,7 +14,7 @@ void bind_address(int sockfd, struct sockaddr_in *addr, int port) {
     memset((char *) addr, 0, sizeof(*addr));
     addr->sin_family = AF_INET;
     addr->sin_port = htons((unsigned short) port); // To network byte order
-    addr->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    addr->sin_addr.s_addr = htonl(INADDR_ANY);
 
     int result = bind(sockfd, (struct sockaddr *) addr, sizeof(*addr));
     if (result == -1) escape("Can't bind address");

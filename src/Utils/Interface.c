@@ -45,7 +45,7 @@ void updateClientBox() {
     int position = 3;
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].isActive > 0) {
-            mvwprintw(box_client, position, 1, clients[i].name);
+            mvwprintw(box_client, position, 1, "%s", clients[i].name);
             position++;
         }
     }
@@ -58,20 +58,18 @@ static void updateMessageBox() {
     box(box_messages, 0, 0);
     mvwprintw(box_messages, 16, 0, "│                                                               │");
     for (int i = 0; i < 16; i++) {
-        mvwprintw(box_messages, i + 1, 1, messages[i]);
+        mvwprintw(box_messages, i + 1, 1, "%s", messages[i]);
     }
 
     wrefresh(box_messages);
 }
 
 void addMessage(const char* msg) {
-    // printf("%s\n", msg);
-    // return;
     for (int i = 1; i < 16; i++) {
-        memset((char *) &messages[i - 1], ' ', sizeof(char) * 18);
-        strcpy((char *) &messages[i - 1], (char *) &messages[i]);
+        memcpy(messages[i - 1], messages[i], sizeof(messages[0]));
     }
-    strcpy((char *) &messages[15], msg);
+    strncpy(messages[15], msg, sizeof(messages[15]) - 1);
+    messages[15][sizeof(messages[15]) - 1] = '\0';
     updateMessageBox();
 }
 
@@ -81,14 +79,14 @@ void updateInfoBox(const char* name, const char* ip, int port) {
     box(box_info, 0, 0);
     // Печатаем адрес
     mvwprintw(box_info, 1, 1, "Ваш адрес: ");
-    mvwprintw(box_info, 1, 13, ip);
-    char str_port[5];
-    sprintf((char *) &str_port, "%d", port);
+    mvwprintw(box_info, 1, 13, "%s", ip);
+    char str_port[8];
+    snprintf(str_port, sizeof(str_port), "%d", port);
     mvwprintw(box_info, 1, 13 + (int) strlen(ip), ":");
-    mvwprintw(box_info, 1, 14 + (int) strlen(ip) , str_port);
+    mvwprintw(box_info, 1, 14 + (int) strlen(ip), "%s", str_port);
     // Печатаем имя
     mvwprintw(box_info, 2, 1, "Ваш ник: ");
-    mvwprintw(box_info, 2, 13, name);
+    mvwprintw(box_info, 2, 13, "%s", name);
 
     wrefresh(box_info);
 }
@@ -133,15 +131,15 @@ int readInput(char* buf, int* size) {
             buf[(*size)++] = (char) symbol;
         }
     }
-    mvwprintw(box_input, 1, 1, (char *)buf);
+    mvwprintw(box_input, 1, 1, "%s", buf);
     return 0;
 }
 
 void interface_close() {
     delwin(box_info);
     delwin(box_client);
-    delwin(box_client);
     delwin(box_messages);
+    delwin(box_input);
 
     endwin();
 }

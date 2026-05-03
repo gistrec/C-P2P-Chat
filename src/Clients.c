@@ -11,7 +11,8 @@ void addClient(const struct sockaddr_in* addr, const char* name) {
         if (clients[i].isActive <= 0) {
             // Копируем адрес
             memcpy(&(clients[i].address), addr, sizeof(struct sockaddr_in));
-            strcpy((char *) &(clients[i].name), name);
+            strncpy(clients[i].name, name, MAX_NAME_LENGTH - 1);
+            clients[i].name[MAX_NAME_LENGTH - 1] = '\0';
             clients[i].isActive = PING_SKIP_TO_TIMEOUT;
             updateClientBox();
             return;
