@@ -3,19 +3,13 @@
 
 
 int main(int argc, char *argv[]) {
-    int connect_port = DEFAULT_PORT;
-    int source_port = DEFAULT_PORT;
-    char* connect_ip = NULL;
-    char name[MAX_NAME_LENGTH] = "";
+    struct CliOptions opts;
+    parseArgs(argc, argv, &opts);
 
-    parseConnectAddress(argc, argv, &connect_ip, &connect_port);
-    parseSourcePort(argc, argv, &source_port);
-    parseName(argc, argv, (char *) &name);
-
-    if (strcmp((char *) &name, "") == 0) {
-        escape("Необходимо ввести имя: -name <имя>");
-    }
-
+    char* name = opts.name;
+    int   source_port  = opts.local_port;
+    char* connect_ip   = opts.remote_host;
+    int   connect_port = opts.remote_port;
 
     fflush(stdin);
     interface_init();
@@ -44,7 +38,7 @@ int main(int argc, char *argv[]) {
 
     char* source_ip = inet_ntoa(local_address.sin_addr);
 
-    updateInfoBox((char *) &name, source_ip, source_port);
+    updateInfoBox(name, source_ip, source_port);
 
     // Устанавливаем неблокирующий флаг дискрипторам
     setNonblockFlag(sockfd);
@@ -57,7 +51,7 @@ int main(int argc, char *argv[]) {
         sprintf((char *) &buf_send, "Подключаемся к %s:%d", connect_ip, connect_port);
         addMessage((char *) &buf_send);
 
-        connectToClient(sockfd, &buf_address, (char *) &name);
+        connectToClient(sockfd, &buf_address, name);
     }else {
         addMessage("Ждем подключения");
     }
@@ -100,7 +94,7 @@ int main(int argc, char *argv[]) {
                         sprintf((char *) &buf_send, "Подключился клиент %s [%s:%d]", buf_name, buf_ip, buf_port);
                         addMessage((char *) &buf_send);
                     }
-                    buf_send_size = createConnectAcceptPacket((char *) &buf_send, (char *) &name);
+                    buf_send_size = createConnectAcceptPacket((char *) &buf_send, name);
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     break;
                 case PACKET_CONNECT_ACCEPT:
@@ -117,7 +111,7 @@ int main(int argc, char *argv[]) {
                     client->isActive = PING_SKIP_TO_TIMEOUT;
                     break;
                 case PACKET_TIMEOUT:
-                    connectToClient(sockfd, &buf_address, (char *) &name);
+                    connectToClient(sockfd, &buf_address, name);
                     break;
                 case PACKET_SEND_MESSAGE:
                     getName(client, (char *) &buf_name);
@@ -129,7 +123,7 @@ int main(int argc, char *argv[]) {
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
                     break;
                 case PACKET_LIST_USERS: {
-                    buf_send_size = createConnectRequestPacket((char *) &buf_send, (char *) &name);
+                    buf_send_size = createConnectRequestPacket((char *) &buf_send, name);
                     int count = (unsigned char) buf_read[1];
                     for (int i = 0; i < count; i++) {
                         memcpy(&buf_address,

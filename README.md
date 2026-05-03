@@ -47,13 +47,15 @@ More details: [installing ncurses](docs/ncurses.md), [installing CMake](docs/cma
 
 | Flag | Description |
 | ---- | ----------- |
-| `-name <nick>` | Set nickname (**required**) |
-| `-connect <ip> <port>` | Connect to a peer |
-| `-port <port>` | Local port (default `8888`) |
+| `-n`, `--name <nick>` | Nickname (**required**) |
+| `-l`, `--local-port <port>` | Local port (default `8888`) |
+| `-r`, `--remote-host <ip>` | IP of a peer to connect to |
+| `-p`, `--remote-port <port>` | Peer port (default `8888`) |
+| `-h`, `--help` | Show usage |
 
 Example:
 ```bash
-./build/C_P2P_Chat -name Alice -connect 46.180.227.50 8888 -port 8080
+./build/C_P2P_Chat --name Alice --remote-host 46.180.227.50 --remote-port 8888 --local-port 8080
 ```
 
 ## Roadmap
