@@ -1,64 +1,61 @@
-# Чат на си
+# C P2P Chat
+
+**English** | [Русский](docs/README.ru.md)
 
 [![Build](https://github.com/gistrec/C-P2P-Chat/actions/workflows/build.yml/badge.svg)](https://github.com/gistrec/C-P2P-Chat/actions/workflows/build.yml)
 
-Децентрализованный P2P чат с использованием UDP пакетов и неблокирующего ввода/вывода!
+A decentralized peer-to-peer chat written in C, built on top of UDP with non-blocking I/O.
 
-Основной функционал:
--  При подключении к одному клиенту, к остальным чат подключится сам!
-- Присутствует функция отслеживания активности клиентов. 
-Если кто-то долго не отвечает на пакеты - считаем его отключившимся
-- Псевдографический интерфейс в стиле Midnight Commander
-- Возможность использовать имена
+Features:
+- Connect to a single peer and the chat automatically discovers and joins the rest of the network.
+- Activity tracking — peers that stop answering pings are considered disconnected.
+- Pseudo-graphical Midnight Commander–style interface.
+- Per-user nicknames.
 
-![Скриншот](https://raw.githubusercontent.com/gistrec/C-P2P-Chat/master/screenshot.png)
+![Screenshot](screenshot.png)
 
-___
+---
 
-### Зависимости
-* [ncurses] - библиотека предназначенная для управления вводом-выводом на терминал
-* [cmake] - кроссплатформенная система автоматизации сборки  
+## Dependencies
+- [ncurses](https://www.gnu.org/software/ncurses/) — terminal I/O library (the wide-character build, `ncursesw`, is required).
+- [CMake](https://cmake.org/) ≥ 3.10.
 
-___
+## Build
 
-### Сборка
-* [Установка ncurses]
-* [Установка CMake v3.9]  
-Используйте команду [git clone](https://git-scm.com/docs/git-clone) чтобы скачать этот проект.
-```
-git clone --depth=1 https://github.com/gistrec/C-P2P-Chat.git Test-chat
-cd Test-chat
+```bash
+git clone --depth=1 https://github.com/gistrec/C-P2P-Chat.git
+cd C-P2P-Chat
+cmake -S . -B build
+cmake --build build -- -j 2
 ```
 
-Соберите проект с помощью CMake:
-```
-cmake . 
-cmake --build . -- -j 2
-```
+### Installing dependencies
 
-### Запуск
-Доступные флаги для запуска:
-
-| Флаг   | Описание |
-| ------ | -------- |
-| -name `<ник>` | Установка ника |
-| -connect `<ip>` `<port>` | Подключиться к ip port |
-| -port `<port>` | Установить локальный порт |
-
-**Флаг -name является обязательным!**
-Пример запуска чата:
-```
-./С_P2P_Chat -name Сашка -connect 46.180.227.50 8888 -port 8080
+**Ubuntu / Debian:**
+```bash
+sudo apt-get install cmake libncursesw5-dev
 ```
 
-___
+**macOS (Homebrew):**
+```bash
+brew install cmake ncurses
+```
 
-### Todos
- - Добавить команды
- - Добавить поддержку разных цветов
+More details: [installing ncurses](docs/ncurses.md), [installing CMake](docs/cmake.md).
 
-[docs]: <https://github.com/gistrec/C-P2P-Chat/tree/master/docs>
-[ncurses]: <https://www.gnu.org/software/ncurses/>
-[cmake]: <https://cmake.org/>
-[Установка ncurses]: <https://github.com/gistrec/C-P2P-Chat/blob/master/docs/ncurses.md>
-[Установка CMake v3.9]: <https://github.com/gistrec/C-P2P-Chat/blob/master/docs/cmake.md>
+## Usage
+
+| Flag | Description |
+| ---- | ----------- |
+| `-name <nick>` | Set nickname (**required**) |
+| `-connect <ip> <port>` | Connect to a peer |
+| `-port <port>` | Local port (default `8888`) |
+
+Example:
+```bash
+./build/C_P2P_Chat -name Alice -connect 46.180.227.50 8888 -port 8080
+```
+
+## Roadmap
+- Chat commands.
+- Color support.

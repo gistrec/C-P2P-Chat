@@ -1,18 +1,18 @@
-# Installing CMake
+# Установка CMake
 
-**English** | [Русский](cmake.ru.md)
+[English](cmake.md) | **Русский**
 
-The project requires **CMake ≥ 3.10**.
+Проекту требуется **CMake ≥ 3.10**.
 
 ## Ubuntu / Debian
 
-Most modern distributions ship a recent enough CMake:
+В большинстве современных дистрибутивов CMake достаточно свежий:
 ```bash
 sudo apt-get update
 sudo apt-get install cmake
 ```
 
-If your distribution's CMake is too old, remove it first and install the latest version from the official Kitware APT repository:
+Если в репозитории слишком старая версия — удалите её и подключите официальный APT-репозиторий Kitware:
 ```bash
 sudo apt-get remove --purge --auto-remove cmake
 sudo apt-get install -y software-properties-common lsb-release
@@ -26,15 +26,15 @@ sudo apt-get install cmake
 
 ## macOS
 
-Via [Homebrew](https://brew.sh):
+Через [Homebrew](https://brew.sh):
 ```bash
 brew install cmake
 ```
 
-## Verify
+## Проверка
 
 ```bash
 cmake --version
 ```
 
-You should see a version of `3.10` or higher.
+Должна отображаться версия `3.10` или выше.
