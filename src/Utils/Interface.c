@@ -138,11 +138,20 @@ int readInput(char* buf, int* size) {
                 mvwprintw(box_input, 1, i + 1, " ");
             }
             return 1;
-        }else if (symbol == KEY_BACKSPACE) {
-            // Удаляем последний элемент
+        }else if (symbol == KEY_BACKSPACE || symbol == 127 || symbol == 8) {
+            // Backspace/Delete: ncurses возвращает разные коды на разных терминалах
+            //   KEY_BACKSPACE — стандартная константа ncurses
+            //   127 — ASCII DEL (macOS Terminal, многие xterm-конфиги)
+            //   8   — ASCII BS  (Ctrl-H, старые tty)
             if (*size > 0) {
-                mvwprintw(box_input, 1, (*size), " ");
-                buf[--(*size)] = 0;
+                // Если последний символ — продолжение UTF-8 многобайтового,
+                // снимаем все continuation-байты (10xxxxxx) до ведущего.
+                do {
+                    (*size)--;
+                    buf[*size] = 0;
+                } while (*size > 0 && ((unsigned char) buf[*size - 1] & 0xC0) == 0x80);
+                mvwprintw(box_input, 1, (*size) + 1, " ");
+                wmove(box_input, 1, (*size) + 1);
             }
         }else if (*size < 99) {
             buf[(*size)++] = (char) symbol;
