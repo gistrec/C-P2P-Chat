@@ -2,6 +2,7 @@
 #include "Utils.h"
 
 #include <langinfo.h>
+#include <time.h>
 
 // ncursesw корректно рисует кириллицу и псевдографику только в UTF-8 локали.
 // Если системная локаль (LANG/LC_ALL) не UTF-8 — пробуем стандартные fallback'и.
@@ -17,12 +18,50 @@ static void ensureUtf8Locale(void) {
     }
 }
 
+#define MSG_HISTORY 16
+#define MSG_TEXT_LEN 126
+
 static WINDOW* box_info = NULL;
 static WINDOW* box_client = NULL;
 static WINDOW* box_messages = NULL;
 static WINDOW* box_input = NULL;
 
-static char messages[16][126] = {{0}};
+struct StoredMessage {
+    char text[MSG_TEXT_LEN];
+    int  type;
+};
+static struct StoredMessage messages[MSG_HISTORY] = {{{0}, 0}};
+
+// Цветовые пары
+#define CP_SYSTEM 1
+#define CP_OWN    2
+#define CP_PEER   3
+#define CP_DIM    4
+
+static int has_color = 0;
+
+static void initColors(void) {
+    if (!has_colors()) {
+        has_color = 0;
+        return;
+    }
+    start_color();
+    use_default_colors();   // -1 = цвет терминала по умолчанию
+    init_pair(CP_SYSTEM, COLOR_YELLOW, -1);
+    init_pair(CP_OWN,    COLOR_GREEN,  -1);
+    init_pair(CP_PEER,   COLOR_CYAN,   -1);
+    init_pair(CP_DIM,    COLOR_WHITE,  -1);
+    has_color = 1;
+}
+
+static int colorPairFor(int type) {
+    switch (type) {
+        case MSG_OWN:    return CP_OWN;
+        case MSG_PEER:   return CP_PEER;
+        case MSG_SYSTEM:
+        default:         return CP_SYSTEM;
+    }
+}
 
 static void initInfoBox() {
     box_info = newwin(5, 65, 0, 0);
@@ -49,8 +88,7 @@ static void initMessageBox() {
 static void initInputBox() {
     box_input = newwin(3, 65, 22, 0);
     box(box_input, 0, 0);
-    mvwprintw(box_input, 0, 0, "├───────────────────────────────────────────────────────────────┤");;
-
+    mvwprintw(box_input, 0, 0, "├───────────────────────────────────────────────────────────────┤");
     wrefresh(box_input);
 }
 
@@ -74,21 +112,36 @@ static void updateMessageBox() {
     wclear(box_messages);
     box(box_messages, 0, 0);
     mvwprintw(box_messages, 16, 0, "│                                                               │");
-    for (int i = 0; i < 16; i++) {
-        mvwprintw(box_messages, i + 1, 1, "%s", messages[i]);
+    for (int i = 0; i < MSG_HISTORY; i++) {
+        if (messages[i].text[0] == '\0') continue;
+        int cp = colorPairFor(messages[i].type);
+        if (has_color) wattron(box_messages, COLOR_PAIR(cp));
+        mvwprintw(box_messages, i + 1, 1, "%s", messages[i].text);
+        if (has_color) wattroff(box_messages, COLOR_PAIR(cp));
     }
-
     wrefresh(box_messages);
 }
 
-void addMessage(const char* msg) {
-    for (int i = 1; i < 16; i++) {
-        memcpy(messages[i - 1], messages[i], sizeof(messages[0]));
+void addMessage(const char* msg, int type) {
+    // Префикс с таймстемпом — [HH:MM] msg
+    time_t now = time(NULL);
+    struct tm tm_buf;
+    struct tm* tm = localtime_r(&now, &tm_buf);
+    char with_ts[MSG_TEXT_LEN];
+    snprintf(with_ts, sizeof(with_ts), "[%02d:%02d] %s", tm->tm_hour, tm->tm_min, msg);
+
+    for (int i = 1; i < MSG_HISTORY; i++) {
+        memcpy(&messages[i - 1], &messages[i], sizeof(messages[0]));
     }
-    utf8_copy(messages[15], sizeof(messages[15]), msg);
+    utf8_copy(messages[MSG_HISTORY - 1].text, sizeof(messages[0].text), with_ts);
+    messages[MSG_HISTORY - 1].type = type;
     updateMessageBox();
 }
 
+void clearMessages(void) {
+    memset(messages, 0, sizeof(messages));
+    updateMessageBox();
+}
 
 void updateInfoBox(const char* name, const char* ip, int port) {
     wclear(box_info);
@@ -114,6 +167,7 @@ void interface_init() {
     fflush(stdout);
 
     initscr();
+    initColors();
 
     initInfoBox();
     initMessageBox();
@@ -126,24 +180,35 @@ void interface_init() {
     wtimeout(box_input, 1000 / TICK_PER_SECOND);  // wait 100 milliseconds for input
 }
 
-// Перерисовать область ввода поверх рамки.
-// Внутренняя ширина бокса = 65 - 2 = 63 колонки (cols 1..63).
-static void redrawInputArea(const char* buf) {
-    // Сначала чистим содержимое пробелами — иначе после удаления символов
-    // в правой части могут остаться старые байты.
-    wmove(box_input, 1, 1);
-    for (int i = 1; i < 64; i++) waddch(box_input, ' ');
-    mvwprintw(box_input, 1, 1, "%s", buf);
-    mvwaddch(box_input, 1, 64, ACS_VLINE);
-    wrefresh(box_input);
-}
-
 static int countUtf8Chars(const char* s, int len) {
     int n = 0;
     for (int i = 0; i < len; i++) {
         if (((unsigned char) s[i] & 0xC0) != 0x80) n++;
     }
     return n;
+}
+
+// Перерисовать область ввода поверх рамки.
+// Внутренняя ширина бокса = 65 - 2 = 63 колонки (cols 1..63).
+static void redrawInputArea(const char* buf, int size) {
+    // Сначала чистим содержимое пробелами — иначе после удаления символов
+    // в правой части могут остаться старые байты.
+    wmove(box_input, 1, 1);
+    for (int i = 1; i < 64; i++) waddch(box_input, ' ');
+    mvwprintw(box_input, 1, 1, "%s", buf);
+    mvwaddch(box_input, 1, 64, ACS_VLINE);
+
+    // Счётчик символов на верхней границе: [NN/60]
+    int chars = countUtf8Chars(buf, size);
+    char counter[16];
+    snprintf(counter, sizeof(counter), "[%d/%d]", chars, MAX_MSG_CHARS);
+    int len = (int) strlen(counter);
+    int at_limit = chars >= MAX_MSG_CHARS;
+    if (at_limit) wattron(box_input, A_BOLD | (has_color ? COLOR_PAIR(CP_SYSTEM) : 0));
+    mvwprintw(box_input, 0, 64 - len, "%s", counter);
+    if (at_limit) wattroff(box_input, A_BOLD | (has_color ? COLOR_PAIR(CP_SYSTEM) : 0));
+
+    wrefresh(box_input);
 }
 
 int readInput(char* buf, int* size) {
@@ -155,7 +220,7 @@ int readInput(char* buf, int* size) {
         if (symbol == '\n') {
             // Игнорируем Enter на пустом вводе — нечего отправлять
             if (*size == 0) continue;
-            redrawInputArea("");
+            redrawInputArea("", 0);
             return 1;
         }else if (symbol == KEY_BACKSPACE || symbol == 127 || symbol == 8) {
             // Backspace/Delete: ncurses возвращает разные коды на разных терминалах
@@ -180,7 +245,7 @@ int readInput(char* buf, int* size) {
             dirty = 1;
         }
     }
-    if (dirty) redrawInputArea(buf);
+    if (dirty) redrawInputArea(buf, *size);
     return 0;
 }
 

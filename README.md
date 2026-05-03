@@ -9,9 +9,10 @@ A decentralized peer-to-peer chat written in C, built on top of UDP with non-blo
 Features:
 - Connect to a single peer and the chat automatically discovers and joins the rest of the network.
 - Activity tracking — peers that stop answering pings are considered disconnected.
-- Pseudo-graphical Midnight Commander–style interface.
+- Pseudo-graphical Midnight Commander–style interface, with colors and message timestamps.
 - Per-user nicknames (up to 12 characters).
-- Messages limited to 60 characters.
+- Messages limited to 60 characters, with a live counter shown above the input.
+- Slash commands: `/help`, `/who`, `/clear`, `/quit`.
 
 ![Screenshot](screenshot.png)
 

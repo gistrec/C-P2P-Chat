@@ -59,11 +59,11 @@ int main(int argc, char *argv[]) {
         createAddress(connect_ip, connect_port, &buf_address);
 
         snprintf((char *) &buf_send, BUFLEN, "Connecting to %s:%d", connect_ip, connect_port);
-        addMessage((char *) &buf_send);
+        addMessage((char *) &buf_send, MSG_SYSTEM);
 
         startConnect(sockfd, &buf_address, name);
     }else {
-        addMessage("Waiting for connection");
+        addMessage("Waiting for connection. Type /help for commands.", MSG_SYSTEM);
     }
     int timeToSendPing = SEND_PING_PAUSE;
     while (!shutdown_requested) {
@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
                         addClient(&buf_address, buf_name);
                         updateClientBox();
                         snprintf((char *) &buf_send, BUFLEN, "Client %s connected [%s:%d]", buf_name, buf_ip, buf_port);
-                        addMessage((char *) &buf_send);
+                        addMessage((char *) &buf_send, MSG_SYSTEM);
                     }
                     buf_send_size = createConnectAcceptPacket((char *) &buf_send, name);
                     send_udp(sockfd, &buf_address, (char *) &buf_send, buf_send_size);
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
                         updateClientBox();
 
                         snprintf((char *) &buf_send, BUFLEN, "Connected to %s", buf_name);
-                        addMessage((char *) &buf_send);
+                        addMessage((char *) &buf_send, MSG_SYSTEM);
                     }
                     if (matchPendingConnect(&buf_address)) {
                         // Это ответ на наш исходящий connect — запросим список остальных пиров
@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
                     if (buf_read_size < 2) break;
                     getName(client, (char *) &buf_name);
                     snprintf((char *) &buf_send, BUFLEN, "%s: %s", buf_name, buf_read + 1);
-                    addMessage(buf_send);
+                    addMessage(buf_send, MSG_PEER);
                     break;
                 case PACKET_REQUEST_USERS:
                     buf_send_size = createListUsersPacket((char *) &buf_send);
@@ -161,11 +161,34 @@ int main(int argc, char *argv[]) {
         static int size_input = 0;
         static char buf_input[MAX_MSG_BYTES] = {0};
         while (readInput((char *) buf_input, &size_input) == 1) {
-            sprintf((char *) &buf_send, "You: %s", buf_input);
-
-            addMessage((char *) &buf_send);
-            createMessagePacket((char *) &buf_send, (char *) &buf_input, size_input);
-            sendPacket(sockfd, (char *) &buf_send, size_input + 1);
+            // Слэш-команды
+            if (buf_input[0] == '/') {
+                if (strcmp(buf_input, "/quit") == 0 || strcmp(buf_input, "/exit") == 0) {
+                    shutdown_requested = 1;
+                } else if (strcmp(buf_input, "/help") == 0) {
+                    addMessage("Commands: /help /who /clear /quit", MSG_SYSTEM);
+                } else if (strcmp(buf_input, "/clear") == 0) {
+                    clearMessages();
+                } else if (strcmp(buf_input, "/who") == 0) {
+                    int n = 0;
+                    for (int i = 0; i < MAX_CLIENTS; i++) {
+                        if (clients[i].isActive > 0) {
+                            snprintf((char *) &buf_send, BUFLEN, "  - %s", clients[i].name);
+                            addMessage((char *) &buf_send, MSG_SYSTEM);
+                            n++;
+                        }
+                    }
+                    if (n == 0) addMessage("No connected peers", MSG_SYSTEM);
+                } else {
+                    snprintf((char *) &buf_send, BUFLEN, "Unknown command: %s", buf_input);
+                    addMessage((char *) &buf_send, MSG_SYSTEM);
+                }
+            } else {
+                snprintf((char *) &buf_send, BUFLEN, "You: %s", buf_input);
+                addMessage((char *) &buf_send, MSG_OWN);
+                createMessagePacket((char *) &buf_send, (char *) &buf_input, size_input);
+                sendPacket(sockfd, (char *) &buf_send, size_input + 1);
+            }
             memset(buf_input, 0, MAX_MSG_BYTES);
             size_input = 0;
         }
@@ -178,8 +201,8 @@ int main(int argc, char *argv[]) {
                     // Счиатем его отключившимся
                     createSimplePacket(PACKET_TIMEOUT, (char *) &buf_send);
                     send_udp(sockfd, &(clients[i].address), (char *) &buf_send, 1);
-                    sprintf((char *) &buf_send, "Client %s timed out", clients[i].name);
-                    addMessage((char *) &buf_send);
+                    snprintf((char *) &buf_send, BUFLEN, "Client %s timed out", clients[i].name);
+                    addMessage((char *) &buf_send, MSG_SYSTEM);
                     removeClient(&clients[i]);
                 }else if(clients[i].isActive > 1) {
                     // Отправляем пакет PING

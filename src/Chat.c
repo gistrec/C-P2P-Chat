@@ -35,7 +35,7 @@ void tickPendingConnect(int sockfd, const char* name) {
 
     if (--pending_connect.retries_left <= 0) {
         pending_connect.active = 0;
-        addMessage("Connect failed: no response from peer");
+        addMessage("Connect failed: no response from peer", MSG_SYSTEM);
         return;
     }
     sendConnectRequest(sockfd, &pending_connect.addr, name);
